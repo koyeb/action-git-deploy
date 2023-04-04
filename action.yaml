@@ -1,0 +1,118 @@
+name: 'Koyeb: build and deploy'
+description: 'Build and deploy a GIT repository on Koyeb.'
+
+inputs:
+  api-token:
+    description: "Koyeb API token"
+    required: true
+
+  app-name:
+    description: "The Koyeb application name to create"
+    required: false
+    default: "${{ github.repository }}"
+
+  service-name:
+    description: "Koyeb service name"
+    required: false
+    default: "main"
+
+  build-timeout:
+    description: "Maximum number of seconds to wait for the build"
+    required: false
+    # 15 minutes
+    default: "900"
+
+  healthy-timeout:
+    description: "Maximum number of seconds to wait for healthy status to be reached"
+    required: false
+    # 15 minutes
+    default: "900"
+
+  git-url:
+    description: "URL of the GIT repository to deploy"
+    required: false
+    default: "github.com/${{ github.repository }}"
+
+  git-workdir:
+    description: "Workdir, if the application to build is not in the root directory of the repository"
+    required: false
+
+  git-branch:
+    description: "GIT branch to deploy"
+    required: false
+    default: "${{ github.ref_name }}"
+
+  service-env:
+    description: "Comma separated list of <KEY>=<value> to specify the application environment"
+    required: false
+    default: ""
+
+  service-ports:
+    description: "Comma separated list of <KEY>=<value> to specify the ports to expose"
+    required: false
+    default: "80:http"
+
+  service-routes:
+    description: "Comma separated list of <PATH>:<port> to specify the routes to expose"
+    required: false
+    default: "/:80"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Slugify repository name
+      shell: sh
+      run: |
+        echo "REPO_SLUG_NAME=$(echo ${{github.repository}} | sed 's/\//-/g')" | tee $GITHUB_ENV
+
+    - name: Install and configure the Koyeb CLI
+      uses: koyeb-community/install-koyeb-cli@v2
+      with:
+        api_token: "${{ inputs.api-token }}"
+
+    - name: Create Koyeb application
+      shell: sh
+      run: |
+        ${{ github.action_path }}/scripts/app-create.py \
+          --app-name "${{ env.REPO_SLUG_NAME }}"
+
+    - name: Create Koyeb service
+      shell: sh
+      run: |
+        ${{ github.action_path }}/scripts/service-upsert.py \
+          --app-name "${{ env.REPO_SLUG_NAME }}" \
+          --service-name "${{ inputs.service-name }}" \
+          --git-url "${{ inputs.git-url }}" \
+          --git-workdir "${{ inputs.git-workdir }}" \
+          --git-branch "${{ inputs.git-branch }}" \
+          --service-env "${{ inputs.service-env }}" \
+          --service-ports "${{ inputs.service-ports }}" \
+          --service-routes "${{ inputs.service-routes }}"
+
+    - id: get-deployment
+      name: Get last deployment of the Koyeb service
+      shell: sh
+      run: |
+        ${{ github.action_path }}/scripts/deployment-get-last-id.py \
+          --app-name "${{ env.REPO_SLUG_NAME }}" \
+          --service-name "${{ inputs.service-name }}" | tee $GITHUB_OUTPUT
+
+    - name: Show build logs
+      shell: sh
+      run: |
+        ${{ github.action_path }}/scripts/deployment-show-build-logs.py \
+          --deployment-id "${{ steps.get-deployment.outputs.deployment-id }}" \
+          --timeout "${{ inputs.build-timeout }}"
+
+    - name: Poll deployment status
+      shell: sh
+      run: |
+        ${{ github.action_path }}/scripts/deployment-wait-healthy.py \
+          --deployment-id "${{ steps.get-deployment.outputs.deployment-id }}" \
+          --timeout "${{ inputs.healthy-timeout }}"
+
+    - name: Show app domain
+      shell: sh
+      run: |
+        ${{ github.action_path }}/scripts/app-show-domain.py \
+          --app-name "${{ env.REPO_SLUG_NAME }}"

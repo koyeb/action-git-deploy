@@ -14,7 +14,7 @@ inputs:
   service-name:
     description: "Koyeb service name"
     required: false
-    default: "main"
+    default: "${{ github.ref_name }}"
 
   build-timeout:
     description: "Maximum number of seconds to wait for the build"

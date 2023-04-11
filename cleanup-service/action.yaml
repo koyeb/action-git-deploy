@@ -1,0 +1,35 @@
+name: 'Koyeb: cleanup after a deployment'
+description: 'Remove a Koyeb service created by koyeb/action-git-deploy'
+
+inputs:
+  api-token:
+    description: "Koyeb API token"
+    required: true
+
+  app-name:
+    description: "The Koyeb application name where the service is"
+    required: false
+    default: "${{ github.repository }}"
+
+  service-name:
+    description: "The Koyeb service name to delete"
+    required: false
+    default: "${{ github.ref_name }}"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Slugify application name
+      shell: sh
+      run: |
+        echo "APP_SLUG=$(echo ${{ inputs.app-name }} | sed 's/\//-/g')" | tee $GITHUB_ENV
+
+    - name: Install and configure the Koyeb CLI
+      uses: koyeb-community/install-koyeb-cli@v2
+      with:
+        api_token: "${{ inputs.api-token }}"
+
+    - name: Delete the service
+      shell: sh
+      run: |
+        koyeb service delete ${{ env.APP_SLUG }}/${{ inputs.service-name }}

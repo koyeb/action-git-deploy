@@ -60,10 +60,10 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Slugify repository name
+    - name: Slugify application name
       shell: sh
       run: |
-        echo "REPO_SLUG_NAME=$(echo ${{github.repository}} | sed 's/\//-/g')" | tee $GITHUB_ENV
+        echo "APP_SLUG=$(echo ${{ inputs.app-name }} | sed 's/\//-/g')" | tee $GITHUB_ENV
 
     - name: Install and configure the Koyeb CLI
       uses: koyeb-community/install-koyeb-cli@v2
@@ -74,13 +74,13 @@ runs:
       shell: sh
       run: |
         ${{ github.action_path }}/scripts/app-create.py \
-          --app-name "${{ env.REPO_SLUG_NAME }}"
+          --app-name "${{ env.APP_SLUG }}"
 
     - name: Create Koyeb service
       shell: sh
       run: |
         ${{ github.action_path }}/scripts/service-upsert.py \
-          --app-name "${{ env.REPO_SLUG_NAME }}" \
+          --app-name "${{ env.APP_SLUG }}" \
           --service-name "${{ inputs.service-name }}" \
           --git-url "${{ inputs.git-url }}" \
           --git-workdir "${{ inputs.git-workdir }}" \
@@ -94,7 +94,7 @@ runs:
       shell: sh
       run: |
         ${{ github.action_path }}/scripts/deployment-get-last-id.py \
-          --app-name "${{ env.REPO_SLUG_NAME }}" \
+          --app-name "${{ env.APP_SLUG }}" \
           --service-name "${{ inputs.service-name }}" | tee $GITHUB_OUTPUT
 
     - name: Show build logs
@@ -115,4 +115,4 @@ runs:
       shell: sh
       run: |
         ${{ github.action_path }}/scripts/app-show-domain.py \
-          --app-name "${{ env.REPO_SLUG_NAME }}"
+          --app-name "${{ env.APP_SLUG }}"

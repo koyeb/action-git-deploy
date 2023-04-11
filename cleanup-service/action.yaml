@@ -32,4 +32,4 @@ runs:
     - name: Delete the service
       shell: sh
       run: |
-        koyeb service delete ${{ env.APP_SLUG }}/${{ inputs.service-name }}
+        koyeb service delete ${{ env.APP_SLUG }}/${{ inputs.service-name }} || echo "Unable to remove the service, likely because it doesn't exist."

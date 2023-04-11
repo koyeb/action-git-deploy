@@ -14,7 +14,7 @@ inputs:
   service-name:
     description: "The Koyeb service name to delete"
     required: false
-    default: "${{ github.ref_name }}"
+    default: "${{ github.event.ref }}"
 
 runs:
   using: "composite"

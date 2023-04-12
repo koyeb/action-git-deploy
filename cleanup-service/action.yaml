@@ -7,13 +7,8 @@ inputs:
     required: true
 
   app-name:
-    description: "The Koyeb application name where the service is"
+    description: "The Koyeb application to delete"
     required: false
-
-  service-name:
-    description: "The Koyeb service name to delete"
-    required: false
-    default: "${{ github.event.ref }}"
 
 runs:
   using: "composite"
@@ -32,7 +27,7 @@ runs:
       with:
         api_token: "${{ inputs.api-token }}"
 
-    - name: Delete the service
+    - name: Delete the application
       shell: sh
       run: |
-        koyeb service delete ${{ env.APP_SLUG }}/${{ inputs.service-name }} || echo "Unable to remove the service, likely because it doesn't exist."
+        koyeb app delete ${{ env.APP_SLUG }} || echo "Unable to remove the application, likely because it doesn't exist."

@@ -77,7 +77,7 @@ After deploying a service to Koyeb, you may want to remove it when it is no long
 
 The `api-token parameter` is mandatory and should be set to your Koyeb API token.
 
-Optionally, you can provide the `app-name` parameter (which defaults to `${{ github.repository }}`) and the `service-name` parameter (which defaults to `${{ github.event.ref }}`) to specify the name of the application and service to remove.
+Optionally, you can provide the `app-name` parameter (which defaults to `<repo>/<branch>`) to specify the name of the application to remove.
 
 ### Removing a Service When a Ref is Deleted
 

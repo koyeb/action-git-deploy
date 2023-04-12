@@ -66,11 +66,11 @@ jobs:
 
 ## Cleaning up Services
 
-After deploying a service to Koyeb, you may want to remove it when it is no longer needed. To do this, you can use the `koyeb/action-git-deploy/cleanup-service` action. Here's an example of how to use this action:
+After deploying a service to Koyeb, you may want to remove it when it is no longer needed. To do this, you can use the `koyeb/action-git-deploy/cleanup` action. Here's an example of how to use this action:
 
 ```yaml
 - name: Clean up Koyeb Service
-  uses: koyeb/action-git-deploy/cleanup-service@v1
+  uses: koyeb/action-git-deploy/cleanup@v1
   with:
     api-token: ${{ secrets.KOYEB_API_TOKEN }}
 ```
@@ -84,7 +84,7 @@ Optionally, you can provide the `app-name` parameter (which defaults to `<repo>/
 To remove a Koyeb service when a branch or tag is deleted, you can use the delete event in your workflow file. Here's an example of how to do this:
 
 ```yaml
-name: Cleanup Koyeb service
+name: Cleanup Koyeb application
 
 on:
   delete:
@@ -95,10 +95,10 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-       - name: Cleanup Koyeb service
-         uses: koyeb/action-git-deploy/cleanup-service@v1
+       - name: Cleanup Koyeb application
+         uses: koyeb/action-git-deploy/cleanup@v1
          with:
            api-token: "${{ secrets.KOYEB_TOKEN }}"
 ```
 
-In this example, the workflow listens for any branch or tag that is deleted using the `'*'` wildcard. When a delete event occurs, the cleanup job runs and uses the `koyeb/action-git-deploy/cleanup-service` action to remove the corresponding Koyeb service. Be sure to replace the `api-token` secret with your own Koyeb API token.
+In this example, the workflow listens for any branch or tag that is deleted using the `'*'` wildcard. When a delete event occurs, the cleanup job runs and uses the `koyeb/action-git-deploy/cleanup` action to remove the corresponding Koyeb service. Be sure to replace the `api-token` secret with your own Koyeb API token.

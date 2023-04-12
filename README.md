@@ -16,7 +16,7 @@ To use this action, add the following step to your workflow:
     service-routes: "/:8000"
 ```
 
-The api-token parameter is mandatory and should be set to your Koyeb API token. To get an API token, go to https://app.koyeb.com/account/api.
+The api-token parameter is mandatory and should be set to your Koyeb API token. To get an API token, go to https://app.koyeb.com/settings/api.
 
 The service-env, service-ports, and service-routes parameters are optional, but you should set them to match the needs of your application. The defaults provided are unlikely to work for most applications.
 

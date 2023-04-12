@@ -7,7 +7,7 @@ This action builds and deploys an application from a GitHub repository to Koyeb.
 To use this action, add the following step to your workflow:
 
 ```yaml
-- name: Deploy to Koyeb
+- name: Build and deploy the application to Koyeb
   uses: koyeb/action-git-deploy@v1
   with:
     api-token: ${{ secrets.KOYEB_API_TOKEN }}
@@ -45,14 +45,15 @@ name: Deploy to Koyeb
 
 on:
   push:
-    branches: [main]
+    branches:
+      - '*'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     concurrency: "${{ github.ref_name }}"
     steps:
-    - name: Deploy to Koyeb
+    - name: Build and deploy the application to Koyeb
       uses: koyeb/action-git-deploy@v1
       with:
         api-token: ${{ secrets.KOYEB_API_TOKEN }}

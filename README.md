@@ -50,6 +50,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    concurrency: "${{ github.repository }}/${{ github.ref_name }}"
     steps:
     - name: Deploy to Koyeb
       uses: koyeb/action-git-deploy@v1

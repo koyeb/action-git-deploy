@@ -78,6 +78,7 @@ def koyeb_service_create(*, app_name, service_name, git_url, git_workdir, git_br
         '--git', git_url,
         '--git-workdir', git_workdir,
         '--git-branch', git_branch,
+        '--git-no-deploy-on-push',
     ]
     for env in service_env:
         args += ['--env', f'{env["name"]}={env["value"]}']
@@ -108,6 +109,7 @@ def koyeb_service_update(*, app_name, service_name, git_url, git_workdir, git_br
         '--git', git_url,
         '--git-workdir', git_workdir,
         '--git-branch', git_branch,
+        '--git-no-deploy-on-push',
     ]
     for env in service_env:
         args += ['--env', f'{env["name"]}={env["value"]}']

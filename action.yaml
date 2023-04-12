@@ -63,7 +63,7 @@ runs:
     - name: Slugify application name
       shell: sh
       run: |
-        echo "APP_SLUG=$(echo ${{ inputs.app-name }} | sed 's/\//-/g')" | tee $GITHUB_ENV
+        echo "APP_SLUG=$(echo ${{ inputs.app-name }} | sed 's/\//-/g')" | cut -c 1-23 | tee $GITHUB_ENV
 
     - name: Install and configure the Koyeb CLI
       uses: koyeb-community/install-koyeb-cli@v2

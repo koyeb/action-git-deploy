@@ -9,7 +9,7 @@ inputs:
   app-name:
     description: "The Koyeb application name to create"
     required: false
-    default: "${{ github.repository }}"
+    default: "${{ github.repository }}/${{ github.ref_name }}"
 
   service-name:
     description: "Koyeb service name"

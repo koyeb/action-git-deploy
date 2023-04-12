@@ -9,7 +9,6 @@ inputs:
   app-name:
     description: "The Koyeb application name where the service is"
     required: false
-    default: "${{ github.repository }}"
 
   service-name:
     description: "The Koyeb service name to delete"
@@ -22,7 +21,11 @@ runs:
     - name: Slugify application name
       shell: sh
       run: |
-        echo "APP_SLUG=$(echo ${{ inputs.app-name }} | sed 's/\//-/g')" | tee $GITHUB_ENV
+        if [ -z "${{ inputs.app-name }}" ]; then
+          echo "APP_SLUG=$(echo '${{ github.repository }}/${{ github.event.ref }}' | cut -d '/' -f 2- | sed 's/\//-/g' | cut -c 1-23)" | tee $GITHUB_ENV
+        else
+          echo "APP_SLUG=${{ inputs.app-name }}" | tee $GITHUB_ENV
+        fi
 
     - name: Install and configure the Koyeb CLI
       uses: koyeb-community/install-koyeb-cli@v2

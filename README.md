@@ -26,7 +26,7 @@ The following optional parameters can be added to the with block:
 
 | Name	           | Description                                                                                                | Default Value
 |------------------|------------------------------------------------------------------------------------------------------------|--------------
-| `app-name`       | The name of the application                                                                                | Repository name
+| `app-name`       | The name of the application                                                                                | `${{ github.repository }}`
 | `service-name`   | Name of the koyeb service to be created	                                                                  | `${{github.ref_name}}`
 | `build-timeout`  | Number of seconds to wait for the build. After this timeout, the job fails	                                | `900` (15 min)
 | `healthy-timeout`| Number of seconds to wait for the service to become healthy. After this timeout, the job fails             | `900` (15 min)

@@ -52,9 +52,13 @@ inputs:
     default: "80:http"
 
   service-routes:
-    description: "Comma separated list of <PATH>:<port> to specify the routes to expose"
+    description: "Comma separated list of <path>:<port> to specify the routes to expose"
     required: false
     default: "/:80"
+
+  service-checks:
+    description: "Comma separated list of <port>:<protocol>:<path> to specify the service healthchecks"
+    required: false
 
 runs:
   using: "composite"
@@ -90,7 +94,8 @@ runs:
           --git-branch "${{ inputs.git-branch }}" \
           --service-env "${{ inputs.service-env }}" \
           --service-ports "${{ inputs.service-ports }}" \
-          --service-routes "${{ inputs.service-routes }}"
+          --service-routes "${{ inputs.service-routes }}" \
+          --service-checks "${{ inputs.service-checks }}"
 
     - id: get-deployment
       name: Get last deployment of the Koyeb service

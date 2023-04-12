@@ -63,11 +63,43 @@ def argparse_to_routes(value):
     return routes
 
 
+def argparse_to_healthchecks(value):
+    errmsg = 'should be formed as <port>:http:<path> or <port>:tcp separated by commas'
+    healthchecks = []
+
+    for r in value.split(','):
+        if not r:
+            continue
+
+        parts = r.split(':')
+
+        if (
+            len(parts) not in (2, 3)
+            or (len(parts) == 2 and parts[1] != 'tcp')
+            or (len(parts) == 3 and parts[1] != 'http')
+        ):
+            raise argparse.ArgumentTypeError(errmsg)
+
+        try:
+            port = int(parts[0])
+        except ValueError:
+            raise argparse.ArgumentTypeError(
+                f'{errmsg} and "{port}" is not a valid port')
+
+        if parts[1] == 'http':
+            healthchecks.append(
+                {'port': port, 'protocol': 'http', 'path': parts[2]}
+            )
+        else:
+            healthchecks.append({'port': port, 'protocol': 'tcp'})
+    return healthchecks
+
+
 class KoyebServiceAlreadyExists(Exception):
     pass
 
 
-def koyeb_service_create(*, app_name, service_name, git_url, git_workdir, git_branch, service_env, service_ports, service_routes):
+def koyeb_service_create(*, app_name, service_name, git_url, git_workdir, git_branch, service_env, service_ports, service_routes, service_checks):
     """Wrapper around koyeb CLI to create a service. If the service already
     exists, it raises an error. Assumes that the koyeb CLI is installed and
     configured."""
@@ -79,6 +111,7 @@ def koyeb_service_create(*, app_name, service_name, git_url, git_workdir, git_br
         '--git-workdir', git_workdir,
         '--git-branch', git_branch,
         '--git-no-deploy-on-push',
+        '-d',
     ]
     for env in service_env:
         args += ['--env', f'{env["name"]}={env["value"]}']
@@ -86,21 +119,28 @@ def koyeb_service_create(*, app_name, service_name, git_url, git_workdir, git_br
         args += ['--ports', f'{port["port"]}:{port["protocol"]}']
     for route in service_routes:
         args += ['--routes', f'{route["path"]}:{route["port"]}']
+    for check in service_checks:
+        args += [
+            '--checks',
+            f'{check["port"]}:{check["protocol"]}:{check["path"]}' if check["protocol"] == 'http' else f'{check["port"]}:{check["protocol"]}'
+        ]
 
     args += ['-o', 'json', '-d']
 
     proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     if proc.returncode != 0:
+        # If the service already exists, koyeb-cli displays an error containing the
+        # strings "400 Bad request" and "Name already exists".
         stderr = proc.stderr.decode()
-        if '400 Bad request'.lower() in stderr.lower():
+        if '400 Bad request'.lower() in stderr.lower() and 'already exists' in stderr.lower():
             raise KoyebServiceAlreadyExists(
                 f'Service {service_name} already exists. Skip.')
         raise RuntimeError(
             f'Error while creating the service {service_name}\n{"v" * 100}\n{stderr.strip()}\n{"^" * 100}')
 
 
-def koyeb_service_update(*, app_name, service_name, git_url, git_workdir, git_branch, service_env, service_ports, service_routes):
+def koyeb_service_update(*, app_name, service_name, git_url, git_workdir, git_branch, service_env, service_ports, service_routes, service_checks):
     """Wrapper around koyeb CLI to update the definition of an existing service.
     Assumes that the koyeb CLI is installed and configured."""
     args = [
@@ -117,6 +157,11 @@ def koyeb_service_update(*, app_name, service_name, git_url, git_workdir, git_br
         args += ['--ports', f'{port["port"]}:{port["protocol"]}']
     for route in service_routes:
         args += ['--routes', f'{route["path"]}:{route["port"]}']
+    for check in service_checks:
+        args += [
+            '--checks',
+            f'{check["port"]}:{check["protocol"]}:{check["path"]}' if check["protocol"] == 'http' else f'{check["port"]}:{check["protocol"]}'
+        ]
 
     args += ['-o', 'json']
 
@@ -150,8 +195,11 @@ def main():
                         help='Comma separated list of <KEY>=<value> to specify the ports to expose',
                         type=argparse_to_ports)
     parser.add_argument('--service-routes', required=True,
-                        help='Comma separated list of <PATH>:<port> to specify the routes to expose',
+                        help='Comma separated list of <path>:<port> to specify the routes to expose',
                         type=argparse_to_routes)
+    parser.add_argument('--service-checks', required=True,
+                        help='Comma separated list of <port>:http:<path> or <port>:tcp to specify the service healthchecks',
+                        type=argparse_to_healthchecks)
     args = parser.parse_args()
 
     try:

@@ -52,7 +52,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    concurrency: "${{ github.ref_name }}"
+    concurrency:
+      group: "${{ github.ref_name }}"
+      cancel-in-progress: true
     steps:
     - name: Build and deploy the application to Koyeb
       uses: koyeb/action-git-deploy@v1

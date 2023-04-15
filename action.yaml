@@ -69,9 +69,8 @@ runs:
         if [ -z "${{ inputs.app-name }}" ]; then
           # cut: to remove the owner from the repository
           # sed: to replace / with -
-          # cut: to limit the size to the maximum application name accepted by koyeb
-          # sed: remove the last char if it's a -, as koyeb applications can't finish wish a dash
-          echo "APP_SLUG=$(echo '${{ github.repository }}/${{ github.ref_name }}' | cut -d '/' -f 2- | sed 's/\//-/g' | cut -c 1-23 | sed 's/-$//g')" | tee $GITHUB_ENV
+          # tail: limit to the last 23 chars (maximum Koyeb application name)
+          echo "APP_SLUG=$(echo '${{ github.repository }}/${{ github.ref_name }}' | cut -d '/' -f 2- | sed 's/\//-/g' | tail -c 24)" | tee $GITHUB_ENV
         else
           echo "APP_SLUG=${{ inputs.app-name }}" | tee $GITHUB_ENV
         fi

@@ -99,7 +99,12 @@ class KoyebServiceAlreadyExists(Exception):
     pass
 
 
-def koyeb_service_create(*, app_name, service_name, git_url, git_workdir, git_branch, service_env, service_ports, service_routes, service_checks):
+def koyeb_service_create(
+        *,
+        app_name, service_name,
+        git_url, git_workdir, git_branch, git_build_command, git_run_command,
+        service_env, service_ports, service_routes, service_checks
+):
     """Wrapper around koyeb CLI to create a service. If the service already
     exists, it raises an error. Assumes that the koyeb CLI is installed and
     configured."""
@@ -110,6 +115,8 @@ def koyeb_service_create(*, app_name, service_name, git_url, git_workdir, git_br
         '--git', git_url,
         '--git-workdir', git_workdir,
         '--git-branch', git_branch,
+        '--git-build-command', git_build_command,
+        '--git-run-command', git_run_command,
         '--git-no-deploy-on-push',
         '-d',
     ]
@@ -140,7 +147,12 @@ def koyeb_service_create(*, app_name, service_name, git_url, git_workdir, git_br
             f'Error while creating the service {service_name}\n{"v" * 100}\n{stderr.strip()}\n{"^" * 100}')
 
 
-def koyeb_service_update(*, app_name, service_name, git_url, git_workdir, git_branch, service_env, service_ports, service_routes, service_checks):
+def koyeb_service_update(
+    *,
+    app_name, service_name,
+    git_url, git_workdir, git_branch, git_build_command, git_run_command,
+    service_env, service_ports, service_routes, service_checks
+):
     """Wrapper around koyeb CLI to update the definition of an existing service.
     Assumes that the koyeb CLI is installed and configured."""
     args = [
@@ -149,6 +161,8 @@ def koyeb_service_update(*, app_name, service_name, git_url, git_workdir, git_br
         '--git', git_url,
         '--git-workdir', git_workdir,
         '--git-branch', git_branch,
+        '--git-build-command', git_build_command,
+        '--git-run-command', git_run_command,
         '--git-no-deploy-on-push',
     ]
     for env in service_env:
@@ -188,6 +202,10 @@ def main():
                         help='Workdir, if the application to build is not in the root directory of the repository')
     parser.add_argument('--git-branch', required=True,
                         help='GIT branch to deploy')
+    parser.add_argument('--git-build-command', required=True,
+                        help='Command to build the application')
+    parser.add_argument('--git-run-command', required=True,
+                        help='Command to run the application')
     parser.add_argument('--service-env', required=True,
                         help='Comma separated list of <KEY>=<value> to specify the application environment',
                         type=argparse_to_env)

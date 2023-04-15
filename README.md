@@ -24,19 +24,21 @@ The service-env, service-ports, and service-routes parameters are optional, but 
 
 The following optional parameters can be added to the with block:
 
-| Name	           | Description                                                                                                       | Default Value
-|------------------|-------------------------------------------------------------------------------------------------------------------|--------------
-| `app-name`       | The name of the application                                                                                       | `<repo>-<branch>`
-| `service-name`   | Name of the koyeb service to be created	                                                                         | `${{ github.ref_name }}`
-| `build-timeout`  | Number of seconds to wait for the build. After this timeout, the job fails	                                       | `900` (15 min)
-| `healthy-timeout`| Number of seconds to wait for the service to become healthy. After this timeout, the job fails                    | `900` (15 min)
-| `git-url`        | The URL of the GitHub repository to build                                                                         | `github.com/<organization>/<repo>`
-| `git-workdir`    | Directory inside the repository to clone                                                                          | Empty string, which represents the root directory
-| `git-branch`     | The Git branch to deploy	                                                                                         | `${{github.ref_name}}`
-| `service-env`    | A comma-separated list of KEY=value pairs to set environment variables for the service	                           | No env
-| `service-ports`  | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service	       | `80:http`
-| `service-routes` | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                   | `/:80`
-| `service-checks` | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service  | No healthchecks
+| Name	                | Description                                                                                                       | Default Value
+|-----------------------|-------------------------------------------------------------------------------------------------------------------|--------------
+| `app-name`            | The name of the application                                                                                       | `<repo>-<branch>`
+| `service-name`        | Name of the koyeb service to be created	                                                                         | `${{ github.ref_name }}`
+| `build-timeout`       | Number of seconds to wait for the build. After this timeout, the job fails	                                       | `900` (15 min)
+| `healthy-timeout`     | Number of seconds to wait for the service to become healthy. After this timeout, the job fails                    | `900` (15 min)
+| `git-url`             | The URL of the GitHub repository to build                                                                         | `github.com/<organization>/<repo>`
+| `git-workdir`         | Directory inside the repository to clone                                                                          | Empty string, which represents the root directory
+| `git-branch`          | The Git branch to deploy	                                                                                         | `${{github.ref_name}}`
+| `git-build-command`   | Command to build the application	                                                                                 | Empty string
+| `git-run-command`     | Command to run the application	                                                                                   | Empty string
+| `service-env`         | A comma-separated list of KEY=value pairs to set environment variables for the service	                           | No env
+| `service-ports`       | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service	       | `80:http`
+| `service-routes`      | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                   | `/:80`
+| `service-checks`      | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service  | No healthchecks
 
 
 ## Example

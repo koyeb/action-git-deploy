@@ -41,6 +41,16 @@ inputs:
     required: false
     default: "${{ github.ref_name }}"
 
+  git-build-command:
+    description: "Command to build the application"
+    required: false
+    default: "${{ github.ref_name }}"
+
+  git-run-command:
+    description: "Command to run the application"
+    required: false
+    default: "${{ github.ref_name }}"
+
   service-env:
     description: "Comma separated list of <KEY>=<value> to specify the application environment"
     required: false
@@ -96,6 +106,8 @@ runs:
           --git-url "${{ inputs.git-url }}" \
           --git-workdir "${{ inputs.git-workdir }}" \
           --git-branch "${{ inputs.git-branch }}" \
+          --git-build-command "${{ inputs.git-build-command }}" \
+          --git-run-command "${{ inputs.git-run-command }}" \
           --service-env "${{ inputs.service-env }}" \
           --service-ports "${{ inputs.service-ports }}" \
           --service-routes "${{ inputs.service-routes }}" \

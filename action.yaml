@@ -70,7 +70,8 @@ runs:
           # cut: to remove the owner from the repository
           # sed: to replace / with -
           # tail: limit to the last 23 chars (maximum Koyeb application name)
-          echo "APP_SLUG=$(echo '${{ github.repository }}/${{ github.ref_name }}' | cut -d '/' -f 2- | sed 's/\//-/g' | tail -c 24)" | tee $GITHUB_ENV
+          # sed: if the leading char is a dash, remove it
+          echo "APP_SLUG=$(echo '${{ github.repository }}/${{ github.ref_name }}' | cut -d '/' -f 2- | sed 's/\//-/g' | tail -c 24 | sed 's/^-//g')" | tee $GITHUB_ENV
         else
           echo "APP_SLUG=${{ inputs.app-name }}" | tee $GITHUB_ENV
         fi

@@ -4,14 +4,20 @@ This action builds and deploys an application from a GitHub repository to Koyeb.
 
 ## Usage
 
-To use this action, add the following steps to your workflow:
+Before you can use the Koyeb Deploy Action, you first need to install and configure the Koyeb CLI.
 
 ```yaml
 - name: Install and configure the Koyeb CLI
   uses: koyeb-community/install-koyeb-cli@v2
   with:
     api_token: "${{ secrets.KOYEB_API_TOKEN }}"
+```
 
+Make sure to set the `KOYEB_API_TOKEN` secret in your repository ([see GitHub documentation](https://docs.github.com/en/actions/security-guides/encrypted-secrets)). To generate a Koyeb token, go to https://app.koyeb.com/settings/api.
+
+Then, add the following step to your workflow:
+
+```yaml
 - name: Build and deploy the application to Koyeb
   uses: koyeb/action-git-deploy@v1
   with:
@@ -19,8 +25,6 @@ To use this action, add the following steps to your workflow:
     service-ports: "8000:http"
     service-routes: "/:8000"
 ```
-
-The first step installs the CLI, and requires to set a Koyeb API token as a [secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets). To generate a token, go to https://app.koyeb.com/settings/api.
 
 The service-env, service-ports, and service-routes parameters are optional, but you should set them to match the needs of your application. The defaults provided are unlikely to work for most applications.
 
@@ -45,7 +49,7 @@ The following optional parameters can be added to the with block:
 | `service-checks`      | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service  | No healthchecks
 
 
-## Example
+## Example: deploying a service to Koyeb
 
 ```yaml
 name: Deploy to Koyeb
@@ -66,6 +70,7 @@ jobs:
         uses: koyeb-community/install-koyeb-cli@v2
         with:
           api_token: "${{ secrets.KOYEB_API_TOKEN }}"
+
       - name: Build and deploy the application to Koyeb
         uses: koyeb/action-git-deploy@v1
         with:
@@ -75,6 +80,28 @@ jobs:
           service-ports: "80:http,8080:http"
           service-routes: "/api:80,/docs:8080"
           service-checks: "8000:http:/,8001:tcp"
+```
+
+## Use secrets
+
+We previously saw how to configure environment variables for your projects. For secrets variables, you can first create a Koyeb secret with `action-git-deploy/secret`:
+
+```yaml
+- name: Create application secret
+  uses: koyeb/action-git-deploy/secret@v1
+  with:
+    secret-name: MY_SECRET
+    secret-value: "${{ secrets.DATABASE_URL }}"
+```
+
+Then you can use this secret as an environment variable for your service:
+
+```yaml
+- name: Build and deploy the application to Koyeb
+  uses: koyeb/action-git-deploy@v1
+  with:
+    [...]
+    service-env: ENV_VAR=@MY_SECRET
 ```
 
 ## Cleaning up Services
@@ -91,11 +118,9 @@ After deploying a service to Koyeb, you may want to remove it when it is no long
   uses: koyeb/action-git-deploy/cleanup@v1
 ```
 
-The first step installs the CLI and requires you to set a Koyeb API token as a secret.
+The first step installs the CLI, which is required to remove the service. The second step performs the cleanup. Optionally, you can provide the `app-name` parameter (which defaults to `<repo>/<branch>`) to specify the name of the application to remove.
 
-The second steps performs the cleanup. Optionally, you can provide the `app-name` parameter (which defaults to `<repo>/<branch>`) to specify the name of the application to remove.
-
-### Removing a Service When a Ref is Deleted
+### Example: removing a service when a ref is deleted
 
 To remove a Koyeb service when a branch or tag is deleted, you can use the delete event in your workflow file. Here's an example of how to do this:
 

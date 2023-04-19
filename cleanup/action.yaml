@@ -13,10 +13,16 @@ runs:
       shell: sh
       run: |
         if [ -z "${{ inputs.app-name }}" ]; then
-          echo "APP_SLUG=$(echo '${{ github.repository }}/${{ github.event.ref }}' | cut -d '/' -f 2- | sed 's/\//-/g' | tail -c 24 | sed 's/^-//g')" | tee $GITHUB_ENV
+          # Remove the owner from the repository
+          APP_SLUG=$(echo '${{ github.repository }}/${{ github.event.ref }}' | cut -d '/' -f 2-)
         else
-          echo "APP_SLUG=${{ inputs.app-name }}" | tee $GITHUB_ENV
+          APP_SLUG="${{ inputs.app-name }}"
         fi
+
+        # sed: to replace / with -
+        # tail: limit to the last 23 chars (maximum Koyeb application name)
+        # sed: if the leading char is a dash, remove it
+        echo "APP_SLUG=$(echo $APP_SLUG | sed 's/\//-/g' | tail -c 24 | sed 's/^-//g')" | tee $GITHUB_ENV
 
     - name: Delete the application
       shell: sh

@@ -2,10 +2,6 @@ name: 'Koyeb: cleanup after a deployment'
 description: 'Remove a Koyeb service created by koyeb/action-git-deploy'
 
 inputs:
-  api-token:
-    description: "Koyeb API token"
-    required: true
-
   app-name:
     description: "The Koyeb application to delete"
     required: false
@@ -21,11 +17,6 @@ runs:
         else
           echo "APP_SLUG=${{ inputs.app-name }}" | tee $GITHUB_ENV
         fi
-
-    - name: Install and configure the Koyeb CLI
-      uses: koyeb-community/install-koyeb-cli@v2
-      with:
-        api_token: "${{ inputs.api-token }}"
 
     - name: Delete the application
       shell: sh

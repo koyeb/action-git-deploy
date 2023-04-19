@@ -4,19 +4,23 @@ This action builds and deploys an application from a GitHub repository to Koyeb.
 
 ## Usage
 
-To use this action, add the following step to your workflow:
+To use this action, add the following steps to your workflow:
 
 ```yaml
+- name: Install and configure the Koyeb CLI
+  uses: koyeb-community/install-koyeb-cli@v2
+  with:
+    api_token: "${{ secrets.KOYEB_API_TOKEN }}"
+
 - name: Build and deploy the application to Koyeb
   uses: koyeb/action-git-deploy@v1
   with:
-    api-token: ${{ secrets.KOYEB_API_TOKEN }}
     service-env: "PORT=8000"
     service-ports: "8000:http"
     service-routes: "/:8000"
 ```
 
-The api-token parameter is mandatory and should be set to your Koyeb API token. To get an API token, go to https://app.koyeb.com/settings/api.
+The first step installs the CLI, and requires to set a Koyeb API token as a [secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets). To generate a token, go to https://app.koyeb.com/settings/api.
 
 The service-env, service-ports, and service-routes parameters are optional, but you should set them to match the needs of your application. The defaults provided are unlikely to work for most applications.
 
@@ -58,16 +62,19 @@ jobs:
       group: "${{ github.ref_name }}"
       cancel-in-progress: true
     steps:
-    - name: Build and deploy the application to Koyeb
-      uses: koyeb/action-git-deploy@v1
-      with:
-        api-token: ${{ secrets.KOYEB_API_TOKEN }}
-        app-name: my-koyeb-app
-        service-name: my-koyeb-service
-        service-env: FOO=bar,BAZ=qux
-        service-ports: "80:http,8080:http"
-        service-routes: "/api:80,/docs:8080"
-        service-checks: "8000:http:/,8001:tcp"
+      - name: Install and configure the Koyeb CLI
+        uses: koyeb-community/install-koyeb-cli@v2
+        with:
+          api_token: "${{ secrets.KOYEB_API_TOKEN }}"
+      - name: Build and deploy the application to Koyeb
+        uses: koyeb/action-git-deploy@v1
+        with:
+          app-name: my-koyeb-app
+          service-name: my-koyeb-service
+          service-env: FOO=bar,BAZ=qux
+          service-ports: "80:http,8080:http"
+          service-routes: "/api:80,/docs:8080"
+          service-checks: "8000:http:/,8001:tcp"
 ```
 
 ## Cleaning up Services
@@ -75,15 +82,18 @@ jobs:
 After deploying a service to Koyeb, you may want to remove it when it is no longer needed. To do this, you can use the `koyeb/action-git-deploy/cleanup` action. Here's an example of how to use this action:
 
 ```yaml
+- name: Install and configure the Koyeb CLI
+  uses: koyeb-community/install-koyeb-cli@v2
+  with:
+    api_token: "${{ secrets.KOYEB_API_TOKEN }}"
+
 - name: Clean up Koyeb Service
   uses: koyeb/action-git-deploy/cleanup@v1
-  with:
-    api-token: ${{ secrets.KOYEB_API_TOKEN }}
 ```
 
-The `api-token parameter` is mandatory and should be set to your Koyeb API token.
+The first step installs the CLI and requires you to set a Koyeb API token as a secret.
 
-Optionally, you can provide the `app-name` parameter (which defaults to `<repo>/<branch>`) to specify the name of the application to remove.
+The second steps performs the cleanup. Optionally, you can provide the `app-name` parameter (which defaults to `<repo>/<branch>`) to specify the name of the application to remove.
 
 ### Removing a Service When a Ref is Deleted
 
@@ -101,10 +111,13 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-       - name: Cleanup Koyeb application
-         uses: koyeb/action-git-deploy/cleanup@v1
-         with:
-           api-token: "${{ secrets.KOYEB_TOKEN }}"
+      - name: Install and configure the Koyeb CLI
+        uses: koyeb-community/install-koyeb-cli@v2
+        with:
+          api_token: "${{ secrets.KOYEB_API_TOKEN }}"
+
+      - name: Cleanup Koyeb application
+        uses: koyeb/action-git-deploy/cleanup@v1
 ```
 
-In this example, the workflow listens for any branch or tag that is deleted using the `'*'` wildcard. When a delete event occurs, the cleanup job runs and uses the `koyeb/action-git-deploy/cleanup` action to remove the corresponding Koyeb service. Be sure to replace the `api-token` secret with your own Koyeb API token.
+In this example, the workflow listens for any branch or tag that is deleted using the `'*'` wildcard. When a delete event occurs, the cleanup job runs and uses the `koyeb/action-git-deploy/cleanup` action to remove the corresponding Koyeb service. Be sure to set `KOYEB_API_TOKEN` as a repository secret.

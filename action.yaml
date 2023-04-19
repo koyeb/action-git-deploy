@@ -2,10 +2,6 @@ name: 'Koyeb: build and deploy'
 description: 'Build and deploy a GIT repository on Koyeb.'
 
 inputs:
-  api-token:
-    description: "Koyeb API token"
-    required: true
-
   app-name:
     description: "The Koyeb application name to create"
     required: false
@@ -87,11 +83,6 @@ runs:
         # tail: limit to the last 23 chars (maximum Koyeb application name)
         # sed: if the leading char is a dash, remove it
         echo "APP_SLUG=$(echo $APP_SLUG | sed 's/\//-/g' | tail -c 24 | sed 's/^-//g')" | tee $GITHUB_ENV
-
-    - name: Install and configure the Koyeb CLI
-      uses: koyeb-community/install-koyeb-cli@v2
-      with:
-        api_token: "${{ inputs.api-token }}"
 
     - name: Create Koyeb application
       shell: sh

@@ -13,7 +13,7 @@ Before you can use the Koyeb Deploy Action, you first need to install and config
     api_token: "${{ secrets.KOYEB_API_TOKEN }}"
 ```
 
-Make sure to [set the `KOYEB_API_TOKEN` secret in your repository](https://docs.github.com/en/actions/security-guides/encrypted-secrets)). To generate a Koyeb token, go to the [**API access tokens** settings in the Koyeb control panel](https://app.koyeb.com/settings/api).
+Make sure to [set the `KOYEB_API_TOKEN` secret in your repository](https://docs.github.com/en/actions/security-guides/encrypted-secrets). To generate a Koyeb token, go to the [**API access tokens** settings in the Koyeb control panel](https://app.koyeb.com/settings/api).
 
 After the step that installs the Koyeb CLI, add the following step to your workflow:
 
@@ -33,7 +33,7 @@ The `service-env`, `service-ports`, and `service-routes` parameters are optional
 The following optional parameters can be added to the `with` block:
 
 | Name                | Description                                                                                                      | Default Value
-|---------------------|------------------------------------------------------------------------------------------------------------------|
+|---------------------|------------------------------------------------------------------------------------------------------------------|--
 | `app-name`          | The name of the application                                                                                      | `<repo>-<branch>`
 | `service-name`      | Name of the Koyeb service to be created                                                                          | `${{ github.ref_name }}`
 | `build-timeout`     | Number of seconds to wait for the build before timing out and failing                                            | `900` (15 min)

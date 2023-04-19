@@ -144,7 +144,8 @@ def koyeb_service_create(
             raise KoyebServiceAlreadyExists(
                 f'Service {service_name} already exists. Skip.')
         raise RuntimeError(
-            f'Error while creating the service {service_name}\n{"v" * 100}\n{stderr.strip()}\n{"^" * 100}')
+            f'Error while creating the service {service_name}\n{"v" * 100}\n{stderr.strip()}\n{"^" * 100}'
+        )
 
 
 def koyeb_service_update(
@@ -183,11 +184,9 @@ def koyeb_service_update(
 
     if proc.returncode != 0:
         stderr = proc.stderr.decode()
-        if '400 Bad request'.lower() in stderr.lower():
-            raise KoyebServiceAlreadyExists(
-                f'Service {service_name} already exists. Skip.')
         raise RuntimeError(
-            f'Error while updating the service {service_name}\n{"v" * 100}\n{stderr.strip()}\n{"^" * 100}')
+            f'Error while updating the service {service_name}\n{"v" * 100}\n{stderr.strip()}\n{"^" * 100}'
+        )
 
 
 def main():

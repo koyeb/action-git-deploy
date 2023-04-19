@@ -13,9 +13,9 @@ Before you can use the Koyeb Deploy Action, you first need to install and config
     api_token: "${{ secrets.KOYEB_API_TOKEN }}"
 ```
 
-Make sure to set the `KOYEB_API_TOKEN` secret in your repository ([see GitHub documentation](https://docs.github.com/en/actions/security-guides/encrypted-secrets)). To generate a Koyeb token, go to https://app.koyeb.com/settings/api.
+Make sure to [set the `KOYEB_API_TOKEN` secret in your repository](https://docs.github.com/en/actions/security-guides/encrypted-secrets)). To generate a Koyeb token, go to the [**API access tokens** settings in the Koyeb control panel](https://app.koyeb.com/settings/api).
 
-Then, add the following step to your workflow:
+After the step that installs the Koyeb CLI, add the following step to your workflow:
 
 ```yaml
 - name: Build and deploy the application to Koyeb
@@ -26,27 +26,27 @@ Then, add the following step to your workflow:
     service-routes: "/:8000"
 ```
 
-The service-env, service-ports, and service-routes parameters are optional, but you should set them to match the needs of your application. The defaults provided are unlikely to work for most applications.
+The `service-env`, `service-ports`, and `service-routes` parameters are optional, but should match the needs of your application.  The defaults provided are unlikely to work for most applications.
 
 ## Optional Parameters
 
-The following optional parameters can be added to the with block:
+The following optional parameters can be added to the `with` block:
 
-| Name	                | Description                                                                                                       | Default Value
-|-----------------------|-------------------------------------------------------------------------------------------------------------------|--------------
-| `app-name`            | The name of the application                                                                                       | `<repo>-<branch>`
-| `service-name`        | Name of the koyeb service to be created	                                                                         | `${{ github.ref_name }}`
-| `build-timeout`       | Number of seconds to wait for the build. After this timeout, the job fails	                                       | `900` (15 min)
-| `healthy-timeout`     | Number of seconds to wait for the service to become healthy. After this timeout, the job fails                    | `900` (15 min)
-| `git-url`             | The URL of the GitHub repository to build                                                                         | `github.com/<organization>/<repo>`
-| `git-workdir`         | Directory inside the repository to clone                                                                          | Empty string, which represents the root directory
-| `git-branch`          | The Git branch to deploy	                                                                                         | `${{github.ref_name}}`
-| `git-build-command`   | Command to build the application	                                                                                 | Empty string
-| `git-run-command`     | Command to run the application	                                                                                   | Empty string
-| `service-env`         | A comma-separated list of KEY=value pairs to set environment variables for the service	                           | No env
-| `service-ports`       | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service	       | `80:http`
-| `service-routes`      | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                   | `/:80`
-| `service-checks`      | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service  | No healthchecks
+| Name                | Description                                                                                                      | Default Value
+|---------------------|------------------------------------------------------------------------------------------------------------------|
+| `app-name`          | The name of the application                                                                                      | `<repo>-<branch>`
+| `service-name`      | Name of the Koyeb service to be created                                                                          | `${{ github.ref_name }}`
+| `build-timeout`     | Number of seconds to wait for the build before timing out and failing                                            | `900` (15 min)
+| `healthy-timeout`   | Number of seconds to wait for the service to become healthy before timing out and failing                        | `900` (15 min)
+| `git-url`           | The URL of the GitHub repository to build                                                                        | `github.com/<organization>/<repo>`
+| `git-workdir`       | Directory inside the repository to clone                                                                         | Empty string, which represents the root directory
+| `git-branch`        | The Git branch to deploy                                                                                         | `${{ github.ref_name }}`
+| `git-build-command` | Command to build the application                                                                                 | Empty string
+| `git-run-command`   | Command to run the application                                                                                   | Empty string
+| `service-env`       | A comma-separated list of KEY=value pairs to set environment variables for the service                           | No env
+| `service-ports`     | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service       | `80:http`
+| `service-routes`    | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                  | `/:80`
+| `service-checks`    | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service | No healthchecks
 
 
 ## Example: deploying a service to Koyeb
@@ -84,7 +84,7 @@ jobs:
 
 ## Use secrets
 
-We previously saw how to configure environment variables for your projects. For secrets variables, you can first create a Koyeb secret with `action-git-deploy/secret`:
+Previously, we showed how to configure environment variables for your projects. For secrets variables, you can first create a Koyeb secret with the [`action-git-deploy/secret` action](https://github.com/koyeb/action-git-deploy/blob/master/secret/action.yaml):
 
 ```yaml
 - name: Create application secret
@@ -94,7 +94,7 @@ We previously saw how to configure environment variables for your projects. For 
     secret-value: "${{ secrets.DATABASE_URL }}"
 ```
 
-Then you can use this secret as an environment variable for your service:
+Afterwards, you can use this secret as an environment variable for your service:
 
 ```yaml
 - name: Build and deploy the application to Koyeb
@@ -106,7 +106,7 @@ Then you can use this secret as an environment variable for your service:
 
 ## Cleaning up Services
 
-After deploying a service to Koyeb, you may want to remove it when it is no longer needed. To do this, you can use the `koyeb/action-git-deploy/cleanup` action. Here's an example of how to use this action:
+After deploying a service to Koyeb, you may want to remove it when it is no longer needed. To do this, you can use the [`koyeb/action-git-deploy/cleanup` action](https://github.com/koyeb/action-git-deploy/blob/master/cleanup/action.yaml). Here's an example of how to use this action:
 
 ```yaml
 - name: Install and configure the Koyeb CLI

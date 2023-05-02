@@ -84,6 +84,12 @@ runs:
         # sed: if the leading char is a dash, remove it
         echo "APP_SLUG=$(echo $APP_SLUG | sed 's/[^a-z0-9]/-/g' | tail -c 24 | sed 's/^-//g')" | tee $GITHUB_ENV
 
+    - name: Slugify service name
+      shell: sh
+      run: |
+        # sed: to replace non alphanum chars with -
+        echo "SERVICE_SLUG=$(echo ${{ inputs.service-name }} | sed 's/[^a-z0-9]/-/g' | tee $GITHUB_ENV
+
     - name: Create Koyeb application
       shell: sh
       run: |
@@ -95,7 +101,7 @@ runs:
       run: |
         ${{ github.action_path }}/scripts/service-upsert.py \
           --app-name "${{ env.APP_SLUG }}" \
-          --service-name "${{ inputs.service-name }}" \
+          --service-name "${{ env.SERVICE_SLUG }}" \
           --git-url "${{ inputs.git-url }}" \
           --git-workdir "${{ inputs.git-workdir }}" \
           --git-branch "${{ inputs.git-branch }}" \
@@ -112,7 +118,7 @@ runs:
       run: |
         ${{ github.action_path }}/scripts/deployment-get-last-id.py \
           --app-name "${{ env.APP_SLUG }}" \
-          --service-name "${{ inputs.service-name }}" | tee $GITHUB_OUTPUT
+          --service-name "${{ env.SERVICE_SLUG }}" | tee $GITHUB_OUTPUT
 
     - name: Show build logs
       shell: sh

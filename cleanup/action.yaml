@@ -19,10 +19,10 @@ runs:
           APP_SLUG="${{ inputs.app-name }}"
         fi
 
-        # sed: to replace / with -
+        # sed: to replace non alphanum chars with -
         # tail: limit to the last 23 chars (maximum Koyeb application name)
         # sed: if the leading char is a dash, remove it
-        echo "APP_SLUG=$(echo $APP_SLUG | sed 's/\//-/g' | tail -c 24 | sed 's/^-//g')" | tee $GITHUB_ENV
+        echo "APP_SLUG=$(echo $APP_SLUG | sed 's/[^a-z0-9]/-/g' | tail -c 24 | sed 's/^-//g')" | tee $GITHUB_ENV
 
     - name: Delete the application
       shell: sh

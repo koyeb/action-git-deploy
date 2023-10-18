@@ -38,15 +38,44 @@ The following optional parameters can be added to the `with` block:
 | `service-name`      | Name of the Koyeb service to be created                                                                          | `${{ github.ref_name }}`
 | `build-timeout`     | Number of seconds to wait for the build before timing out and failing                                            | `900` (15 min)
 | `healthy-timeout`   | Number of seconds to wait for the service to become healthy before timing out and failing                        | `900` (15 min)
-| `git-url`           | The URL of the GitHub repository to build                                                                        | `github.com/<organization>/<repo>`
-| `git-workdir`       | Directory inside the repository to clone                                                                         | Empty string, which represents the root directory
-| `git-branch`        | The Git branch to deploy                                                                                         | `${{ github.ref_name }}`
-| `git-build-command` | Command to build the application                                                                                 | Empty string
-| `git-run-command`   | Command to run the application                                                                                   | Empty string
 | `service-env`       | A comma-separated list of KEY=value pairs to set environment variables for the service                           | No env
 | `service-ports`     | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service       | `80:http`
 | `service-routes`    | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                  | `/:80`
 | `service-checks`    | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service | No healthchecks
+
+If you want to deploy a GitHub repository, you can also add the following parameters:
+
+| Name                | Description                               | Default Value
+|---------------------|-------------------------------------------|--
+| `git-url`           | The URL of the GitHub repository to build | `github.com/<organization>/<repo>`
+| `git-workdir`       | Directory inside the repository to clone  | Empty string, which represents the root directory
+| `git-branch`        | The Git branch to deploy                  | `${{ github.ref_name }}`
+
+If you want your GitHub repository to use the default buildpack builder, set the parameter `git-builder` to `buildpack`. You can also add:
+
+| Name                | Description                      | Default Value
+|---------------------|----------------------------------|--
+| `git-build-command` | Command to build the application | Empty string
+| `git-run-command`   | Command to run the application   | Empty string
+
+
+If instead you want your GitHub repository to use the docker builder, set the parameter `git-builder` to `docker`. You can also add:
+
+| Name                    | Description            | Default Value | Example
+|-------------------------|------------------------|---------------|--
+| `git-docker-command`    | Docker CMD             | Empty string  | `'nginx -g \"daemon off;\"'`
+| `git-docker-dockerfile` | Dockerfile to build    | `Dockerfile`  |
+| `git-docker-entrypoint` | Docker ENTRYPOINT      | Empty string  | `/docker-entrypoint.sh`
+| `git-docker-target`     | Docker target to build | Empty string  |
+
+If you want to deploy a Docker image and not a GitHub repository, you can set the following parameters:
+
+| Name                             | Description                                    | Default Value | Example
+|----------------------------------|------------------------------------------------|---------------|--
+| `docker`                         | The docker image to deploy                     | Empty string  |
+| `docker-entrypoint`              | Docker ENTRYPOINT                              | Empty string  | `'nginx -g \"daemon off;\"'`
+| `docker-command`                 | Docker CMD                                     | Empty string  | `/docker-entrypoint.sh`
+| `docker-private-registry-secret` | Secret to authenticate to the private registry | Empty string  |
 
 
 ## Example: deploying a service to Koyeb

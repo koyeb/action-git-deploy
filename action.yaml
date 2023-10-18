@@ -23,25 +23,6 @@ inputs:
     # 15 minutes
     default: "900"
 
-  git-url:
-    description: "URL of the GIT repository to deploy"
-    required: false
-    default: "github.com/${{ github.repository }}"
-
-  git-workdir:
-    description: "Workdir, if the application to build is not in the root directory of the repository"
-    required: false
-
-  git-branch:
-    description: "GIT branch to deploy"
-    required: false
-    default: "${{ github.ref_name }}"
-
-  git-builder:
-    description: "Type builder to user (buildpack or docker)"
-    required: false
-    default: "buildpack"
-
   # Docker deployment
   docker:
     description: "Docker image (only for docker deployments)"
@@ -62,6 +43,27 @@ inputs:
     description: "Docker secret in case you are using a private registry (only for docker deployments)"
     required: false
     default: ""
+
+  # Git deployment
+  git-url:
+    description: "URL of the GIT repository to deploy"
+    required: false
+    default: "github.com/${{ github.repository }}"
+
+  git-workdir:
+    description: "Workdir, if the application to build is not in the root directory of the repository"
+    required: false
+
+  git-branch:
+    description: "GIT branch to deploy"
+    required: false
+    default: "${{ github.ref_name }}"
+
+  git-builder:
+    description: "Type builder to user (buildpack or docker)"
+    required: false
+    default: "buildpack"
+
 
   # Git deployment: buildpack builder options
   git-build-command:

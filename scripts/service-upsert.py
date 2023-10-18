@@ -108,42 +108,66 @@ class KoyebServiceAlreadyExists(Exception):
 
 def service_common_args(
     *,
-    git_url, git_workdir, git_branch,
     service_env, service_ports, service_routes, service_checks,
+    docker, docker_entrypoint, docker_command, docker_private_registry_secret,
+    git_url, git_workdir, git_branch,
     git_build_command, git_run_command,
     git_builder,
     git_docker_command, git_docker_dockerfile, git_docker_entrypoint, git_docker_target,
     **kwargs
 ):
     """Arguments common to service create and service update."""
-    params = [
-        '--git', git_url,
-        '--git-workdir', git_workdir,
-        '--git-branch', git_branch,
-        '--git-no-deploy-on-push',
-    ]
-    if git_builder == 'buildpack':
+    params = []
+
+    if docker:
         params += [
-            '--git-builder', 'buildpack',
-            '--git-build-command', git_build_command,
-            '--git-run-command', git_run_command,
+            '--docker', docker,
         ]
+        if not docker_entrypoint:
+            params += ['--docker-entrypoint', '']
+        else:
+            for part in docker_entrypoint:
+                params += ['--docker-entrypoint', part]
+        if not docker_command:  # erase existing command and args
+            params += ['--docker-command', '']
+            params += ['--docker-args', '']
+        else:
+            params += ['--docker-command', docker_command[0]]
+            for part in docker_command[1:]:
+                params += ['--docker-args', part]
+        params += [
+            '--docker-private-registry-secret', docker_private_registry_secret
+        ]
+
     else:
-        params += ['--git-builder', 'docker']
-        if not git_docker_command:  # erase existing command and args
-            params += ['--git-docker-command', '']
-            params += ['--git-docker-args', '']
+        params += [
+            '--git', git_url,
+            '--git-workdir', git_workdir,
+            '--git-branch', git_branch,
+            '--git-no-deploy-on-push',
+        ]
+        if git_builder == 'buildpack':
+            params += [
+                '--git-builder', 'buildpack',
+                '--git-build-command', git_build_command,
+                '--git-run-command', git_run_command,
+            ]
         else:
-            params += ['--git-docker-command', git_docker_command[0]]
-            for part in git_docker_command[1:]:
-                params += ['--git-docker-args', part]
-        params += ['--git-docker-dockerfile', git_docker_dockerfile]
-        params += ['--git-docker-target', git_docker_target]
-        if not git_docker_entrypoint:
-            params += ['--git-docker-entrypoint', '']
-        else:
-            for part in git_docker_entrypoint:
-                params += ['--git-docker-entrypoint', part]
+            params += ['--git-builder', 'docker']
+            if not git_docker_command:  # erase existing command and args
+                params += ['--git-docker-command', '']
+                params += ['--git-docker-args', '']
+            else:
+                params += ['--git-docker-command', git_docker_command[0]]
+                for part in git_docker_command[1:]:
+                    params += ['--git-docker-args', part]
+            params += ['--git-docker-dockerfile', git_docker_dockerfile]
+            params += ['--git-docker-target', git_docker_target]
+            if not git_docker_entrypoint:
+                params += ['--git-docker-entrypoint', '']
+            else:
+                for part in git_docker_entrypoint:
+                    params += ['--git-docker-entrypoint', part]
 
     for env in service_env:
         params += ['--env', f'{env["name"]}={env["value"]}']
@@ -172,6 +196,7 @@ def koyeb_service_create(app_name, service_name, params):
     ] + params
 
     print(f'>> {" ".join(shlex.quote(arg) for arg in args)}')
+
     proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     if proc.returncode != 0:
@@ -205,19 +230,61 @@ def koyeb_service_update(app_name, service_name, params):
         )
 
 
+def check_mutual_exclusive_options(parser, args):
+    # If --docker-* options are set, --git-* options must not be set
+    if (
+        any([True for key, value in vars(args).items()
+            if key.startswith('docker') and value])
+        and
+        any([True for key, value in vars(args).items()
+            if key.startswith('git') and value])
+    ):
+        parser.error(
+            'Docker and GIT options are mutually exclusive. Set either --docker-* or --git-* options, not both.')
+
+    if args.git_builder == 'docker' and (
+        args.git_build_command or
+        args.git_run_command
+    ):
+        parser.error(
+            '--git-build-command and --git-run-command are only valid with the buildpack builder.'
+        )
+    elif args.git_builder == 'buildpack' and (
+        any([True for key, value in vars(args).items()
+            if key.startswith('git_docker') and value])
+    ):
+        parser.error(
+            '--git-docker-* arguments are only valid with the docker builder.'
+        )
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--app-name', required=True,
                         help='Name of the Koyeb app to create')
     parser.add_argument('--service-name', required=True,
                         help='Name of the Koyeb service to create and deploy')
-    parser.add_argument('--git-url', required=True,
+
+    # Docker deployment
+    parser.add_argument('--docker', required=False,
+                        help='Docker image (only for docker deployments)')
+    parser.add_argument('--docker-entrypoint', required=False,
+                        help='Docker entrypoint (only for docker deployments)',
+                        type=argparse_to_subprocess_params)
+    parser.add_argument('--docker-command', required=False,
+                        help='Docker CMD (only for docker deployments)',
+                        type=argparse_to_subprocess_params)
+    parser.add_argument('--docker-private-registry-secret', required=False,
+                        help='Docker secret in case you are using a private registry (only for docker deployments)')
+
+    # Git deployment
+    parser.add_argument('--git-url', required=False,
                         help='URL of the GIT repository to deploy')
-    parser.add_argument('--git-workdir', required=True,
+    parser.add_argument('--git-workdir', required=False,
                         help='Workdir, if the application to build is not in the root directory of the repository')
-    parser.add_argument('--git-branch', required=True,
+    parser.add_argument('--git-branch', required=False,
                         help='GIT branch to deploy')
-    parser.add_argument('--git-builder', required=True, choices=('buildpack', 'docker'),
+    parser.add_argument('--git-builder', required=False, choices=('buildpack', 'docker'),
                         help='Type of builder to use')
 
     # Git deployment: buildpack builder options
@@ -253,22 +320,7 @@ def main():
                         type=argparse_to_healthchecks)
     args = parser.parse_args()
 
-    if args.git_builder == 'docker' and (
-        args.git_build_command or
-        args.git_run_command
-    ):
-        parser.error(
-            '--git-build-command and --git-run-command are only valid with the buildpack builder'
-        )
-    elif args.git_builder == 'buildpack' and (
-        args.git_docker_command or
-        args.git_docker_dockerfile or
-        args.git_docker_entrypoint or
-        args.git_docker_target
-    ):
-        parser.error(
-            '--git-docker-command, --git-docker-dockerfile, --git-docker-entrypoint and --git-docker-target are only valid with the docker builder'
-        )
+    check_mutual_exclusive_options(parser, args)
 
     try:
         params = service_common_args(**vars(args))

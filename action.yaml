@@ -42,7 +42,28 @@ inputs:
     required: false
     default: "buildpack"
 
-  # Git: buildpack builder options
+  # Docker deployment
+  docker:
+    description: "Docker image (only for docker deployments)"
+    required: false
+    default: ""
+
+  docker-entrypoint:
+    description: "Docker entrypoint (only for docker deployments)"
+    required: false
+    default: ""
+
+  docker-command:
+    description: "Docker CMD (only for docker deployments)"
+    required: false
+    default: ""
+
+  docker-private-registry-secret:
+    description: "Docker secret in case you are using a private registry (only for docker deployments)"
+    required: false
+    default: ""
+
+  # Git deployment: buildpack builder options
   git-build-command:
     description: "Command to build the application (only for git deployments with the buildpack builder)"
     required: false
@@ -127,37 +148,51 @@ runs:
     - name: Create Koyeb service
       shell: sh
       run: |
-        if [ "${{ inputs.git-builder }}" = "buildpack" ];
-        then
-          ${{ github.action_path }}/scripts/service-upsert.py \
-            --app-name "${{ env.APP_SLUG }}" \
-            --service-name "${{ env.SERVICE_SLUG }}" \
-            --git-url "${{ inputs.git-url }}" \
-            --git-workdir "${{ inputs.git-workdir }}" \
-            --git-branch "${{ inputs.git-branch }}" \
-            --git-builder "buildpack" \
-            --git-build-command "${{ inputs.git-build-command }}" \
-            --git-run-command "${{ inputs.git-run-command }}" \
-            --service-env "${{ inputs.service-env }}" \
-            --service-ports "${{ inputs.service-ports }}" \
-            --service-routes "${{ inputs.service-routes }}" \
-            --service-checks "${{ inputs.service-checks }}"
+        if [ -n "${{ inputs.docker }}" ]; then
+            ${{ github.action_path }}/scripts/service-upsert.py \
+              --app-name "${{ env.APP_SLUG }}" \
+              --service-name "${{ env.SERVICE_SLUG }}" \
+              --docker "${{ inputs.docker }}" \
+              --docker-entrypoint "${{ inputs.docker-entrypoint }}" \
+              --docker-command "${{ inputs.docker-command }}" \
+              --docker-private-registry-secret "${{ inputs.docker-private-registry-secret }}" \
+              --service-env "${{ inputs.service-env }}" \
+              --service-ports "${{ inputs.service-ports }}" \
+              --service-routes "${{ inputs.service-routes }}" \
+              --service-checks "${{ inputs.service-checks }}"
         else
-          ${{ github.action_path }}/scripts/service-upsert.py \
-            --app-name "${{ env.APP_SLUG }}" \
-            --service-name "${{ env.SERVICE_SLUG }}" \
-            --git-url "${{ inputs.git-url }}" \
-            --git-workdir "${{ inputs.git-workdir }}" \
-            --git-branch "${{ inputs.git-branch }}" \
-            --git-builder "docker" \
-            --git-docker-command "${{ inputs.git-docker-command }}" \
-            --git-docker-dockerfile "${{ inputs.git-docker-dockerfile }}" \
-            --git-docker-entrypoint "${{ inputs.git-docker-entrypoint }}" \
-            --git-docker-target "${{ inputs.git-docker-target }}" \
-            --service-env "${{ inputs.service-env }}" \
-            --service-ports "${{ inputs.service-ports }}" \
-            --service-routes "${{ inputs.service-routes }}" \
-            --service-checks "${{ inputs.service-checks }}"
+          if [ "${{ inputs.git-builder }}" = "buildpack" ];
+          then
+            ${{ github.action_path }}/scripts/service-upsert.py \
+              --app-name "${{ env.APP_SLUG }}" \
+              --service-name "${{ env.SERVICE_SLUG }}" \
+              --git-url "${{ inputs.git-url }}" \
+              --git-workdir "${{ inputs.git-workdir }}" \
+              --git-branch "${{ inputs.git-branch }}" \
+              --git-builder "buildpack" \
+              --git-build-command "${{ inputs.git-build-command }}" \
+              --git-run-command "${{ inputs.git-run-command }}" \
+              --service-env "${{ inputs.service-env }}" \
+              --service-ports "${{ inputs.service-ports }}" \
+              --service-routes "${{ inputs.service-routes }}" \
+              --service-checks "${{ inputs.service-checks }}"
+          else
+            ${{ github.action_path }}/scripts/service-upsert.py \
+              --app-name "${{ env.APP_SLUG }}" \
+              --service-name "${{ env.SERVICE_SLUG }}" \
+              --git-url "${{ inputs.git-url }}" \
+              --git-workdir "${{ inputs.git-workdir }}" \
+              --git-branch "${{ inputs.git-branch }}" \
+              --git-builder "docker" \
+              --git-docker-command "${{ inputs.git-docker-command }}" \
+              --git-docker-dockerfile "${{ inputs.git-docker-dockerfile }}" \
+              --git-docker-entrypoint "${{ inputs.git-docker-entrypoint }}" \
+              --git-docker-target "${{ inputs.git-docker-target }}" \
+              --service-env "${{ inputs.service-env }}" \
+              --service-ports "${{ inputs.service-ports }}" \
+              --service-routes "${{ inputs.service-routes }}" \
+              --service-checks "${{ inputs.service-checks }}"
+          fi
         fi
 
     - id: get-deployment

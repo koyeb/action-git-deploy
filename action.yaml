@@ -37,16 +37,44 @@ inputs:
     required: false
     default: "${{ github.ref_name }}"
 
+  git-builder:
+    description: "Type builder to user (buildpack or docker)"
+    required: false
+    default: "buildpack"
+
+  # Git: buildpack builder options
   git-build-command:
-    description: "Command to build the application"
+    description: "Command to build the application (only for git deployments with the buildpack builder)"
     required: false
     default: ""
 
   git-run-command:
-    description: "Command to run the application"
+    description: "Command to run the application (only for git deployments with the buildpack builder)"
     required: false
     default: ""
 
+  # Git deployment: docker builder options
+  git-docker-command:
+    description: "Docker CMD (only for git deployments with the docker builder)"
+    required: false
+    default: ""
+
+  git-docker-dockerfile:
+    description: "Dockerfile path (only for git deployments with the docker builder)"
+    required: false
+    default: ""
+
+  git-docker-entrypoint:
+    description: "Docker entrypoint (only for git deployments with the docker builder)"
+    required: false
+    default: ""
+
+  git-docker-target:
+    description: "Dockerfile build target (only for git deployments with the docker builder)"
+    required: false
+    default: ""
+
+  # Service options
   service-env:
     description: "Comma separated list of <KEY>=<value> to specify the application environment"
     required: false
@@ -99,18 +127,38 @@ runs:
     - name: Create Koyeb service
       shell: sh
       run: |
-        ${{ github.action_path }}/scripts/service-upsert.py \
-          --app-name "${{ env.APP_SLUG }}" \
-          --service-name "${{ env.SERVICE_SLUG }}" \
-          --git-url "${{ inputs.git-url }}" \
-          --git-workdir "${{ inputs.git-workdir }}" \
-          --git-branch "${{ inputs.git-branch }}" \
-          --git-build-command "${{ inputs.git-build-command }}" \
-          --git-run-command "${{ inputs.git-run-command }}" \
-          --service-env "${{ inputs.service-env }}" \
-          --service-ports "${{ inputs.service-ports }}" \
-          --service-routes "${{ inputs.service-routes }}" \
-          --service-checks "${{ inputs.service-checks }}"
+        if [ "${{ inputs.git-builder }}" = "buildpack" ];
+        then
+          ${{ github.action_path }}/scripts/service-upsert.py \
+            --app-name "${{ env.APP_SLUG }}" \
+            --service-name "${{ env.SERVICE_SLUG }}" \
+            --git-url "${{ inputs.git-url }}" \
+            --git-workdir "${{ inputs.git-workdir }}" \
+            --git-branch "${{ inputs.git-branch }}" \
+            --git-builder "buildpack" \
+            --git-build-command "${{ inputs.git-build-command }}" \
+            --git-run-command "${{ inputs.git-run-command }}" \
+            --service-env "${{ inputs.service-env }}" \
+            --service-ports "${{ inputs.service-ports }}" \
+            --service-routes "${{ inputs.service-routes }}" \
+            --service-checks "${{ inputs.service-checks }}"
+        else
+          ${{ github.action_path }}/scripts/service-upsert.py \
+            --app-name "${{ env.APP_SLUG }}" \
+            --service-name "${{ env.SERVICE_SLUG }}" \
+            --git-url "${{ inputs.git-url }}" \
+            --git-workdir "${{ inputs.git-workdir }}" \
+            --git-branch "${{ inputs.git-branch }}" \
+            --git-builder "docker" \
+            --git-docker-command "${{ inputs.git-docker-command }}" \
+            --git-docker-dockerfile "${{ inputs.git-docker-dockerfile }}" \
+            --git-docker-entrypoint "${{ inputs.git-docker-entrypoint }}" \
+            --git-docker-target "${{ inputs.git-docker-target }}" \
+            --service-env "${{ inputs.service-env }}" \
+            --service-ports "${{ inputs.service-ports }}" \
+            --service-routes "${{ inputs.service-routes }}" \
+            --service-checks "${{ inputs.service-checks }}"
+        fi
 
     - id: get-deployment
       name: Get last deployment of the Koyeb service

@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 
 import argparse
+import shlex
 import subprocess
+
+
+def argparse_to_subprocess_params(value):
+    """Given a string (e.g. 'cat -te "superfile with spaces.txt"), returns a
+    list of params that can be passed to subprocess."""
+    return shlex.split(value)
 
 
 def argparse_to_env(value):
@@ -99,12 +106,60 @@ class KoyebServiceAlreadyExists(Exception):
     pass
 
 
-def koyeb_service_create(
-        *,
-        app_name, service_name,
-        git_url, git_workdir, git_branch, git_build_command, git_run_command,
-        service_env, service_ports, service_routes, service_checks
+def service_common_args(
+    *,
+    git_url, git_workdir, git_branch,
+    service_env, service_ports, service_routes, service_checks,
+    git_build_command, git_run_command,
+    git_builder,
+    git_docker_command, git_docker_dockerfile, git_docker_entrypoint, git_docker_target,
+    **kwargs
 ):
+    """Arguments common to service create and service update."""
+    params = [
+        '--git', git_url,
+        '--git-workdir', git_workdir,
+        '--git-branch', git_branch,
+        '--git-no-deploy-on-push',
+    ]
+    if git_builder == 'buildpack':
+        params += [
+            '--git-builder', 'buildpack',
+            '--git-build-command', git_build_command,
+            '--git-run-command', git_run_command,
+        ]
+    else:
+        params += ['--git-builder', 'docker']
+        if not git_docker_command:  # erase existing command and args
+            params += ['--git-docker-command', '']
+            params += ['--git-docker-args', '']
+        else:
+            params += ['--git-docker-command', git_docker_command[0]]
+            for part in git_docker_command[1:]:
+                params += ['--git-docker-args', part]
+        params += ['--git-docker-dockerfile', git_docker_dockerfile]
+        params += ['--git-docker-target', git_docker_target]
+        if not git_docker_entrypoint:
+            params += ['--git-docker-entrypoint', '']
+        else:
+            for part in git_docker_entrypoint:
+                params += ['--git-docker-entrypoint', part]
+
+    for env in service_env:
+        params += ['--env', f'{env["name"]}={env["value"]}']
+    for port in service_ports:
+        params += ['--ports', f'{port["port"]}:{port["protocol"]}']
+    for route in service_routes:
+        params += ['--routes', f'{route["path"]}:{route["port"]}']
+    for check in service_checks:
+        params += [
+            '--checks',
+            f'{check["port"]}:{check["protocol"]}:{check["path"]}' if check["protocol"] == 'http' else f'{check["port"]}:{check["protocol"]}'
+        ]
+    return params
+
+
+def koyeb_service_create(app_name, service_name, params):
     """Wrapper around koyeb CLI to create a service. If the service already
     exists, it raises an error. Assumes that the koyeb CLI is installed and
     configured."""
@@ -112,28 +167,11 @@ def koyeb_service_create(
         'koyeb', 'service', 'create',
         service_name,
         '--app', app_name,
-        '--git', git_url,
-        '--git-workdir', git_workdir,
-        '--git-branch', git_branch,
-        '--git-build-command', git_build_command,
-        '--git-run-command', git_run_command,
-        '--git-no-deploy-on-push',
+        '-o', 'json',
         '-d',
-    ]
-    for env in service_env:
-        args += ['--env', f'{env["name"]}={env["value"]}']
-    for port in service_ports:
-        args += ['--ports', f'{port["port"]}:{port["protocol"]}']
-    for route in service_routes:
-        args += ['--routes', f'{route["path"]}:{route["port"]}']
-    for check in service_checks:
-        args += [
-            '--checks',
-            f'{check["port"]}:{check["protocol"]}:{check["path"]}' if check["protocol"] == 'http' else f'{check["port"]}:{check["protocol"]}'
-        ]
+    ] + params
 
-    args += ['-o', 'json', '-d']
-
+    print(f'>> {" ".join(shlex.quote(arg) for arg in args)}')
     proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     if proc.returncode != 0:
@@ -148,38 +186,16 @@ def koyeb_service_create(
         )
 
 
-def koyeb_service_update(
-    *,
-    app_name, service_name,
-    git_url, git_workdir, git_branch, git_build_command, git_run_command,
-    service_env, service_ports, service_routes, service_checks
-):
+def koyeb_service_update(app_name, service_name, params):
     """Wrapper around koyeb CLI to update the definition of an existing service.
     Assumes that the koyeb CLI is installed and configured."""
     args = [
         'koyeb', 'service', 'update',
         f'{app_name}/{service_name}',
-        '--git', git_url,
-        '--git-workdir', git_workdir,
-        '--git-branch', git_branch,
-        '--git-build-command', git_build_command,
-        '--git-run-command', git_run_command,
-        '--git-no-deploy-on-push',
-    ]
-    for env in service_env:
-        args += ['--env', f'{env["name"]}={env["value"]}']
-    for port in service_ports:
-        args += ['--ports', f'{port["port"]}:{port["protocol"]}']
-    for route in service_routes:
-        args += ['--routes', f'{route["path"]}:{route["port"]}']
-    for check in service_checks:
-        args += [
-            '--checks',
-            f'{check["port"]}:{check["protocol"]}:{check["path"]}' if check["protocol"] == 'http' else f'{check["port"]}:{check["protocol"]}'
-        ]
+        '-o', 'json'
+    ] + params
 
-    args += ['-o', 'json']
-
+    print(f'>> {" ".join(shlex.quote(arg) for arg in args)}')
     proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     if proc.returncode != 0:
@@ -201,10 +217,28 @@ def main():
                         help='Workdir, if the application to build is not in the root directory of the repository')
     parser.add_argument('--git-branch', required=True,
                         help='GIT branch to deploy')
-    parser.add_argument('--git-build-command', required=True,
-                        help='Command to build the application')
-    parser.add_argument('--git-run-command', required=True,
-                        help='Command to run the application')
+    parser.add_argument('--git-builder', required=True, choices=('buildpack', 'docker'),
+                        help='Type of builder to use')
+
+    # Git deployment: buildpack builder options
+    parser.add_argument('--git-build-command', required=False,
+                        help='Command to build the application (only for git deployments with the buildpack builder)')
+    parser.add_argument('--git-run-command', required=False,
+                        help='Command to run the application (only for git deployments with the buildpack builder)')
+
+    # Git deployment: docker builder options
+    parser.add_argument('--git-docker-command', required=False,
+                        help='Docker CMD (only for git deployments with the docker builder)',
+                        type=argparse_to_subprocess_params)
+    parser.add_argument('--git-docker-dockerfile', required=False,
+                        help='Dockerfile path (only for git deployments with the docker builder)')
+    parser.add_argument('--git-docker-entrypoint', required=False,
+                        help='Docker entrypoint (only for git deployments with the docker builder)',
+                        type=argparse_to_subprocess_params)
+    parser.add_argument('--git-docker-target', required=False,
+                        help='Docker target (only for git deployments with the docker builder)')
+
+    # Service options
     parser.add_argument('--service-env', required=True,
                         help='Comma separated list of <KEY>=<value> to specify the application environment',
                         type=argparse_to_env)
@@ -219,11 +253,29 @@ def main():
                         type=argparse_to_healthchecks)
     args = parser.parse_args()
 
+    if args.git_builder == 'docker' and (
+        args.git_build_command or
+        args.git_run_command
+    ):
+        parser.error(
+            '--git-build-command and --git-run-command are only valid with the buildpack builder'
+        )
+    elif args.git_builder == 'buildpack' and (
+        args.git_docker_command or
+        args.git_docker_dockerfile or
+        args.git_docker_entrypoint or
+        args.git_docker_target
+    ):
+        parser.error(
+            '--git-docker-command, --git-docker-dockerfile, --git-docker-entrypoint and --git-docker-target are only valid with the docker builder'
+        )
+
     try:
-        koyeb_service_create(**vars(args))
+        params = service_common_args(**vars(args))
+        koyeb_service_create(args.app_name, args.service_name, params)
     except KoyebServiceAlreadyExists:
         print('Service already exists. Triggering an update instead.')
-        koyeb_service_update(**vars(args))
+        koyeb_service_update(args.app_name, args.service_name, params)
 
 
 if __name__ == '__main__':

@@ -42,6 +42,7 @@ The following optional parameters can be added to the `with` block:
 | `service-ports`     | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service       | `80:http`
 | `service-routes`    | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                  | `/:80`
 | `service-checks`    | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service | No healthchecks
+| `privileged`        | Whether to run the service in privileged mode                                                                    | `false`
 
 If you want to deploy a GitHub repository, you can also add the following parameters:
 

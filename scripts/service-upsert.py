@@ -102,6 +102,17 @@ def argparse_to_healthchecks(value):
     return healthchecks
 
 
+def argparse_to_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif value.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 class KoyebServiceAlreadyExists(Exception):
     pass
 
@@ -114,6 +125,7 @@ def service_common_args(
     git_build_command, git_run_command,
     git_builder,
     git_docker_command, git_docker_dockerfile, git_docker_entrypoint, git_docker_target,
+    privileged,
     **kwargs
 ):
     """Arguments common to service create and service update."""
@@ -180,6 +192,7 @@ def service_common_args(
             '--checks',
             f'{check["port"]}:{check["protocol"]}:{check["path"]}' if check["protocol"] == 'http' else f'{check["port"]}:{check["protocol"]}'
         ]
+    params += [f'--privileged={"true" if privileged else "false"}']
     return params
 
 
@@ -264,6 +277,9 @@ def main():
                         help='Name of the Koyeb app to create')
     parser.add_argument('--service-name', required=True,
                         help='Name of the Koyeb service to create and deploy')
+    parser.add_argument("--privileged", type=argparse_to_bool, nargs='?',
+                        const=True, default=False,
+                        help="Whether to run the container in privileged mode or not")
 
     # Docker deployment
     parser.add_argument('--docker', required=False,

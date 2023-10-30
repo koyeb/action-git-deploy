@@ -27,6 +27,11 @@ inputs:
     # 15 minutes
     default: "900"
 
+  privileged:
+    description: "Whether to run the build in privileged mode"
+    required: false
+    default: "false"
+
   # Docker deployment
   docker:
     description: "Docker image (only for docker deployments)"

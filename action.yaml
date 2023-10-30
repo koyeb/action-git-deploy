@@ -170,7 +170,8 @@ runs:
               --service-env "${{ inputs.service-env }}" \
               --service-ports "${{ inputs.service-ports }}" \
               --service-routes "${{ inputs.service-routes }}" \
-              --service-checks "${{ inputs.service-checks }}"
+              --service-checks "${{ inputs.service-checks }}" \
+              --privileged "${{ inputs.privileged }}"
         else
           if [ "${{ inputs.git-builder }}" = "buildpack" ];
           then
@@ -186,7 +187,8 @@ runs:
               --service-env "${{ inputs.service-env }}" \
               --service-ports "${{ inputs.service-ports }}" \
               --service-routes "${{ inputs.service-routes }}" \
-              --service-checks "${{ inputs.service-checks }}"
+              --service-checks "${{ inputs.service-checks }}" \
+              --privileged "${{ inputs.privileged }}"
           else
             ${{ github.action_path }}/scripts/service-upsert.py \
               --app-name "${{ env.APP_SLUG }}" \
@@ -202,7 +204,8 @@ runs:
               --service-env "${{ inputs.service-env }}" \
               --service-ports "${{ inputs.service-ports }}" \
               --service-routes "${{ inputs.service-routes }}" \
-              --service-checks "${{ inputs.service-checks }}"
+              --service-checks "${{ inputs.service-checks }}" \
+              --privileged "${{ inputs.privileged }}"
           fi
         fi
 

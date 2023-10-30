@@ -1,6 +1,10 @@
 name: 'Koyeb: build and deploy'
 description: 'Build and deploy a GIT repository on Koyeb.'
 
+branding:
+  icon: chevron-right
+  color: gray-dark
+
 inputs:
   app-name:
     description: "The Koyeb application name to create"

@@ -11,6 +11,17 @@ def argparse_to_subprocess_params(value):
     return shlex.split(value)
 
 
+def argparse_to_regions(value):
+    regions = []
+
+    for part in value.split(','):
+        if not part:
+            continue
+
+        regions.append(part)
+    return regions
+
+
 def argparse_to_env(value):
     env = []
 
@@ -119,7 +130,7 @@ class KoyebServiceAlreadyExists(Exception):
 
 def service_common_args(
     *,
-    service_env, service_ports, service_routes, service_checks,
+    service_instance_type, service_regions, service_env, service_ports, service_routes, service_checks,
     docker, docker_entrypoint, docker_command, docker_private_registry_secret,
     git_url, git_workdir, git_branch,
     git_build_command, git_run_command,
@@ -181,6 +192,10 @@ def service_common_args(
                 for part in git_docker_entrypoint:
                     params += ['--git-docker-entrypoint', part]
 
+    if service_instance_type != '':
+        params += ['--instance-type', service_instance_type]
+    for region in service_regions:
+        params += ['--regions', region]
     for env in service_env:
         params += ['--env', f'{env["name"]}={env["value"]}']
     for port in service_ports:
@@ -322,6 +337,11 @@ def main():
                         help='Docker target (only for git deployments with the docker builder)')
 
     # Service options
+    parser.add_argument('--service-instance-type', required=False,
+                        help='Type of instance to use to run the service')
+    parser.add_argument('--service-regions', required=False,
+                        help='Comma separated list of region identifiers to specify where the service should be deployed',
+                        type=argparse_to_regions)
     parser.add_argument('--service-env', required=True,
                         help='Comma separated list of <KEY>=<value> to specify the application environment',
                         type=argparse_to_env)

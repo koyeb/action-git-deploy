@@ -107,6 +107,16 @@ inputs:
     default: ""
 
   # Service options
+  service-instance-type:
+    description: "Type of instance to use to run the service"
+    required: false
+    default: "nano"
+
+  service-regions:
+    description: "Comma separated list of region identifiers to specify where the service should be deployed"
+    required: false
+    default: "fra"
+
   service-env:
     description: "Comma separated list of <KEY>=<value> to specify the application environment"
     required: false
@@ -167,6 +177,8 @@ runs:
               --docker-entrypoint "${{ inputs.docker-entrypoint }}" \
               --docker-command "${{ inputs.docker-command }}" \
               --docker-private-registry-secret "${{ inputs.docker-private-registry-secret }}" \
+              --service-instance-type "${{ inputs.service-instance-type }}" \
+              --service-regions "${{ inputs.service-regions }}" \
               --service-env "${{ inputs.service-env }}" \
               --service-ports "${{ inputs.service-ports }}" \
               --service-routes "${{ inputs.service-routes }}" \
@@ -184,6 +196,8 @@ runs:
               --git-builder "buildpack" \
               --git-build-command "${{ inputs.git-build-command }}" \
               --git-run-command "${{ inputs.git-run-command }}" \
+              --service-instance-type "${{ inputs.service-instance-type }}" \
+              --service-regions "${{ inputs.service-regions }}" \
               --service-env "${{ inputs.service-env }}" \
               --service-ports "${{ inputs.service-ports }}" \
               --service-routes "${{ inputs.service-routes }}" \
@@ -201,6 +215,8 @@ runs:
               --git-docker-dockerfile "${{ inputs.git-docker-dockerfile }}" \
               --git-docker-entrypoint "${{ inputs.git-docker-entrypoint }}" \
               --git-docker-target "${{ inputs.git-docker-target }}" \
+              --service-instance-type "${{ inputs.service-instance-type }}" \
+              --service-regions "${{ inputs.service-regions }}" \
               --service-env "${{ inputs.service-env }}" \
               --service-ports "${{ inputs.service-ports }}" \
               --service-routes "${{ inputs.service-routes }}" \

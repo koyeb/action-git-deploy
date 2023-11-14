@@ -32,17 +32,19 @@ The `service-env`, `service-ports`, and `service-routes` parameters are optional
 
 The following optional parameters can be added to the `with` block:
 
-| Name                | Description                                                                                                      | Default Value
-|---------------------|------------------------------------------------------------------------------------------------------------------|--
-| `app-name`          | The name of the application                                                                                      | `<repo>-<branch>`
-| `service-name`      | Name of the Koyeb service to be created                                                                          | `${{ github.ref_name }}`
-| `build-timeout`     | Number of seconds to wait for the build before timing out and failing                                            | `900` (15 min)
-| `healthy-timeout`   | Number of seconds to wait for the service to become healthy before timing out and failing                        | `900` (15 min)
-| `service-env`       | A comma-separated list of KEY=value pairs to set environment variables for the service                           | No env
-| `service-ports`     | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service       | `80:http`
-| `service-routes`    | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                  | `/:80`
-| `service-checks`    | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service | No healthchecks
-| `privileged`        | Whether to run the service in privileged mode                                                                    | `false`
+| Name                      | Description                                                                                                      | Default Value
+|---------------------------|------------------------------------------------------------------------------------------------------------------|--
+| `app-name`                | The name of the application                                                                                      | `<repo>-<branch>`
+| `service-name`            | Name of the Koyeb service to be created                                                                          | `${{ github.ref_name }}`
+| `build-timeout`           | Number of seconds to wait for the build before timing out and failing                                            | `900` (15 min)
+| `healthy-timeout`         | Number of seconds to wait for the service to become healthy before timing out and failing                        | `900` (15 min)
+| `service-env`             | A comma-separated list of KEY=value pairs to set environment variables for the service                           | No env
+| `service-instance-type`   | The type of instance to use to run the service                                                                   | `nano`
+| `service-regions`         | A comma-separated list of region identifiers to specify where the service should be deployed                     | `fra`
+| `service-ports`           | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service       | `80:http`
+| `service-routes`          | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                  | `/:80`
+| `service-checks`          | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service | No healthchecks
+| `privileged`              | Whether to run the service in privileged mode                                                                    | `false`
 
 If you want to deploy a GitHub repository, you can also add the following parameters:
 

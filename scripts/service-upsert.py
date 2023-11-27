@@ -130,7 +130,7 @@ class KoyebServiceAlreadyExists(Exception):
 
 def service_common_args(
     *,
-    service_instance_type, service_regions, service_env, service_ports, service_routes, service_checks,
+    service_instance_type, service_regions, service_env, service_ports, service_routes, service_checks, service_type,
     docker, docker_entrypoint, docker_command, docker_private_registry_secret,
     git_url, git_workdir, git_branch,
     git_build_command, git_run_command,
@@ -192,6 +192,8 @@ def service_common_args(
                 for part in git_docker_entrypoint:
                     params += ['--git-docker-entrypoint', part]
 
+    if service_type:
+        params += ['--type', service_type]
     if service_instance_type:
         params += ['--instance-type', service_instance_type]
     for region in service_regions:
@@ -295,6 +297,7 @@ def main():
     parser.add_argument("--privileged", type=argparse_to_bool, nargs='?',
                         const=True, default=False,
                         help="Whether to run the container in privileged mode or not")
+    parser.add_argument("--service-type", choices=('web', 'worker'), help="Service type")
 
     # Docker deployment
     parser.add_argument('--docker', required=False,

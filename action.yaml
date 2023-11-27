@@ -136,6 +136,11 @@ inputs:
     description: "Comma separated list of <port>:<protocol>:<path> to specify the service healthchecks"
     required: false
 
+  service-type:
+    description: "Service type (\"web\" or \"worker\")"
+    required: false
+    default: "web"
+
 runs:
   using: "composite"
   steps:
@@ -172,6 +177,7 @@ runs:
         if [ -n "${{ inputs.docker }}" ]; then
             ${{ github.action_path }}/scripts/service-upsert.py \
               --app-name "${{ env.APP_SLUG }}" \
+              --service-type "${{ inputs.service-type }}" \
               --service-name "${{ env.SERVICE_SLUG }}" \
               --docker "${{ inputs.docker }}" \
               --docker-entrypoint "${{ inputs.docker-entrypoint }}" \
@@ -189,6 +195,7 @@ runs:
           then
             ${{ github.action_path }}/scripts/service-upsert.py \
               --app-name "${{ env.APP_SLUG }}" \
+              --service-type "${{ inputs.service-type }}" \
               --service-name "${{ env.SERVICE_SLUG }}" \
               --git-url "${{ inputs.git-url }}" \
               --git-workdir "${{ inputs.git-workdir }}" \
@@ -206,6 +213,7 @@ runs:
           else
             ${{ github.action_path }}/scripts/service-upsert.py \
               --app-name "${{ env.APP_SLUG }}" \
+              --service-type "${{ inputs.service-type }}" \
               --service-name "${{ env.SERVICE_SLUG }}" \
               --git-url "${{ inputs.git-url }}" \
               --git-workdir "${{ inputs.git-workdir }}" \

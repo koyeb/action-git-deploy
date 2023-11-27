@@ -192,7 +192,7 @@ def service_common_args(
                 for part in git_docker_entrypoint:
                     params += ['--git-docker-entrypoint', part]
 
-    if service_instance_type != '':
+    if service_instance_type:
         params += ['--instance-type', service_instance_type]
     for region in service_regions:
         params += ['--regions', region]

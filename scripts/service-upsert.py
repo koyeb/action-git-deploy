@@ -339,7 +339,7 @@ def main():
     # Service options
     parser.add_argument('--service-instance-type', required=False,
                         help='Type of instance to use to run the service')
-    parser.add_argument('--service-regions', required=False,
+    parser.add_argument('--service-regions', required=True,
                         help='Comma separated list of region identifiers to specify where the service should be deployed',
                         type=argparse_to_regions)
     parser.add_argument('--service-env', required=True,

@@ -309,6 +309,7 @@ def main():
                         help='Docker CMD (only for docker deployments)',
                         type=argparse_to_subprocess_params)
     parser.add_argument('--docker-private-registry-secret', required=False,
+                        default='',
                         help='Docker secret in case you are using a private registry (only for docker deployments)')
 
     # Git deployment

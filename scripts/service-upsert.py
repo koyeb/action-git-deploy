@@ -124,10 +124,6 @@ def argparse_to_bool(value):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-class KoyebServiceAlreadyExists(Exception):
-    pass
-
-
 def service_common_args(
     *,
     service_instance_type, service_regions, service_env, service_ports, service_routes, service_checks, service_type,
@@ -211,6 +207,19 @@ def service_common_args(
     return params
 
 
+def koyeb_service_exists(app_name, service_name):
+    """Wrapper around the koyeb CLI which returns True if a service exists."""
+    args = [
+        'koyeb', 'service', 'get',
+        service_name,
+        '--app', app_name,
+        '-o', 'json',
+    ]
+    print(f'>> {" ".join(shlex.quote(arg) for arg in args)}')
+    proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return proc.returncode == 0
+
+
 def koyeb_service_create(app_name, service_name, params):
     """Wrapper around koyeb CLI to create a service. If the service already
     exists, it raises an error. Assumes that the koyeb CLI is installed and
@@ -220,7 +229,6 @@ def koyeb_service_create(app_name, service_name, params):
         service_name,
         '--app', app_name,
         '-o', 'json',
-        '-d',
     ] + params
 
     print(f'>> {" ".join(shlex.quote(arg) for arg in args)}')
@@ -228,12 +236,7 @@ def koyeb_service_create(app_name, service_name, params):
     proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     if proc.returncode != 0:
-        # If the service already exists, koyeb-cli displays an error containing the
-        # strings "400 Bad request" and "Name already exists".
         stderr = proc.stderr.decode()
-        if '400 Bad request'.lower() in stderr.lower() and 'already exists' in stderr.lower():
-            raise KoyebServiceAlreadyExists(
-                f'Service {service_name} already exists. Skip.')
         raise RuntimeError(
             f'Error while creating the service {service_name}\n{"v" * 100}\n{stderr.strip()}\n{"^" * 100}'
         )
@@ -360,12 +363,13 @@ def main():
 
     check_mutual_exclusive_options(parser, args)
 
-    try:
-        params = service_common_args(**vars(args))
+    params = service_common_args(**vars(args))
+
+    if not koyeb_service_exists(args.app_name, args.service_name):
         koyeb_service_create(args.app_name, args.service_name, params)
-    except KoyebServiceAlreadyExists:
-        print('Service already exists. Triggering an update instead.')
-        koyeb_service_update(args.app_name, args.service_name, params)
+    else:
+         print('Service already exists. Triggering an update.')
+         koyeb_service_update(args.app_name, args.service_name, params)
 
 
 if __name__ == '__main__':

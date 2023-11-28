@@ -192,10 +192,8 @@ def service_common_args(
                 for part in git_docker_entrypoint:
                     params += ['--git-docker-entrypoint', part]
 
-    if service_type:
-        params += ['--type', service_type]
-    if service_instance_type:
-        params += ['--instance-type', service_instance_type]
+    params += ['--type', service_type]
+    params += ['--instance-type', service_instance_type]
     for region in service_regions:
         params += ['--regions', region]
     for env in service_env:
@@ -297,7 +295,7 @@ def main():
     parser.add_argument("--privileged", type=argparse_to_bool, nargs='?',
                         const=True, default=False,
                         help="Whether to run the container in privileged mode or not")
-    parser.add_argument("--service-type", choices=('web', 'worker'), help="Service type")
+    parser.add_argument("--service-type", choices=('web', 'worker'), required=True, help="Service type")
 
     # Docker deployment
     parser.add_argument('--docker', required=False,
@@ -341,7 +339,7 @@ def main():
                         help='Docker target (only for git deployments with the docker builder)')
 
     # Service options
-    parser.add_argument('--service-instance-type', required=False,
+    parser.add_argument('--service-instance-type', required=True,
                         help='Type of instance to use to run the service')
     parser.add_argument('--service-regions', required=True,
                         help='Comma separated list of region identifiers to specify where the service should be deployed',

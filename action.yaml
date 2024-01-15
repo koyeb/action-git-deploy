@@ -73,7 +73,6 @@ inputs:
     required: false
     default: "buildpack"
 
-
   # Git deployment: buildpack builder options
   git-build-command:
     description: "Command to build the application (only for git deployments with the buildpack builder)"
@@ -141,6 +140,11 @@ inputs:
     required: false
     default: "web"
 
+  skip-cache:
+    description: "Whether to skip the cache when building the application"
+    required: false
+    default: ${{ env.SKIP_CACHE || "false" }}
+
 runs:
   using: "composite"
   steps:
@@ -189,7 +193,8 @@ runs:
               --service-ports "${{ inputs.service-ports }}" \
               --service-routes "${{ inputs.service-routes }}" \
               --service-checks "${{ inputs.service-checks }}" \
-              --privileged "${{ inputs.privileged }}"
+              --privileged "${{ inputs.privileged }}" \
+              --skip-cache "${{ inputs.skip-cache }}"
         else
           if [ "${{ inputs.git-builder }}" = "buildpack" ];
           then
@@ -209,7 +214,8 @@ runs:
               --service-ports "${{ inputs.service-ports }}" \
               --service-routes "${{ inputs.service-routes }}" \
               --service-checks "${{ inputs.service-checks }}" \
-              --privileged "${{ inputs.privileged }}"
+              --privileged "${{ inputs.privileged }}" \
+              --skip-cache "${{ inputs.skip-cache }}"
           else
             ${{ github.action_path }}/scripts/service-upsert.py \
               --app-name "${{ env.APP_SLUG }}" \
@@ -229,7 +235,8 @@ runs:
               --service-ports "${{ inputs.service-ports }}" \
               --service-routes "${{ inputs.service-routes }}" \
               --service-checks "${{ inputs.service-checks }}" \
-              --privileged "${{ inputs.privileged }}"
+              --privileged "${{ inputs.privileged }}" \
+              --skip-cache "${{ inputs.skip-cache }}"
           fi
         fi
 

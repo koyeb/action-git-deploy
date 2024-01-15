@@ -132,7 +132,7 @@ def service_common_args(
     git_build_command, git_run_command,
     git_builder,
     git_docker_command, git_docker_dockerfile, git_docker_entrypoint, git_docker_target,
-    privileged,
+    privileged, skip_cache,
     **kwargs
 ):
     """Arguments common to service create and service update."""
@@ -204,6 +204,7 @@ def service_common_args(
             f'{check["port"]}:{check["protocol"]}:{check["path"]}' if check["protocol"] == 'http' else f'{check["port"]}:{check["protocol"]}'
         ]
     params += [f'--privileged={"true" if privileged else "false"}']
+    params += [f'--skip-cache={"true" if skip_cache else "false"}']
     return params
 
 
@@ -291,6 +292,7 @@ def check_mutual_exclusive_options(parser, args):
 
 def main():
     parser = argparse.ArgumentParser()
+
     parser.add_argument('--app-name', required=True,
                         help='Name of the Koyeb app to create')
     parser.add_argument('--service-name', required=True,
@@ -298,6 +300,9 @@ def main():
     parser.add_argument("--privileged", type=argparse_to_bool, nargs='?',
                         const=True, default=False,
                         help="Whether to run the container in privileged mode or not")
+    parser.add_argument("--skip-cache", type=argparse_to_bool, nargs='?',
+                        const=True, default=False,
+                        help="Whether to skip the cache when building the application")
     parser.add_argument("--service-type", choices=('web', 'worker'), required=True, help="Service type")
 
     # Docker deployment

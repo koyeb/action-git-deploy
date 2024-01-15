@@ -46,7 +46,7 @@ The following optional parameters can be added to the `with` block:
 | `service-routes`          | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                  | `/:80`
 | `service-checks`          | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service | No healthchecks
 | `privileged`              | Whether to run the service in privileged mode                                                                    | `false`
-| `skip-cache`              | Whether skip the cache when building the service                                                                 | `${{ env.SKIP_CACHE \|\| "false" }}`
+| `skip-cache`              | Whether skip the cache when building the service                                                                 | `false`
 
 If you want to deploy a GitHub repository, you can also add the following parameters:
 

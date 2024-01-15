@@ -143,7 +143,7 @@ inputs:
   skip-cache:
     description: "Whether to skip the cache when building the application"
     required: false
-    default: ${{ env.SKIP_CACHE || "false" }}
+    default: "false"
 
 runs:
   using: "composite"

@@ -128,7 +128,7 @@ def service_common_args(
     *,
     service_instance_type, service_regions, service_env, service_ports, service_routes, service_checks, service_type,
     docker, docker_entrypoint, docker_command, docker_private_registry_secret,
-    git_url, git_workdir, git_branch,
+    git_url, git_workdir, git_branch, git_sha,
     git_build_command, git_run_command,
     git_builder,
     git_docker_command, git_docker_dockerfile, git_docker_entrypoint, git_docker_target,
@@ -163,6 +163,7 @@ def service_common_args(
             '--git', git_url,
             '--git-workdir', git_workdir,
             '--git-branch', git_branch,
+            '--git-sha', git_sha,
             '--git-no-deploy-on-push',
         ]
         if git_builder == 'buildpack':
@@ -325,6 +326,8 @@ def main():
                         help='Workdir, if the application to build is not in the root directory of the repository')
     parser.add_argument('--git-branch', required=False,
                         help='GIT branch to deploy')
+    parser.add_argument('--git-sha', required=False,
+                        help='GIT SHA to deploy')
     parser.add_argument('--git-builder', required=False, choices=('buildpack', 'docker'),
                         help='Type of builder to use')
 

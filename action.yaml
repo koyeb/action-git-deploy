@@ -68,6 +68,11 @@ inputs:
     required: false
     default: "${{ github.ref_name }}"
 
+  git-sha:
+    description: "Sha of the commit to deploy"
+    required: false
+    default: ""
+
   git-builder:
     description: "Type builder to user (buildpack or docker)"
     required: false
@@ -205,6 +210,7 @@ runs:
               --git-url "${{ inputs.git-url }}" \
               --git-workdir "${{ inputs.git-workdir }}" \
               --git-branch "${{ inputs.git-branch }}" \
+              --git-sha "${{ inputs.git-sha }}" \
               --git-builder "buildpack" \
               --git-build-command "${{ inputs.git-build-command }}" \
               --git-run-command "${{ inputs.git-run-command }}" \
@@ -224,6 +230,7 @@ runs:
               --git-url "${{ inputs.git-url }}" \
               --git-workdir "${{ inputs.git-workdir }}" \
               --git-branch "${{ inputs.git-branch }}" \
+              --git-sha "${{ inputs.git-sha }}" \
               --git-builder "docker" \
               --git-docker-command "${{ inputs.git-docker-command }}" \
               --git-docker-dockerfile "${{ inputs.git-docker-dockerfile }}" \

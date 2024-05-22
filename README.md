@@ -55,6 +55,7 @@ If you want to deploy a GitHub repository, you can also add the following parame
 | `git-url`           | The URL of the GitHub repository to build | `github.com/<organization>/<repo>`
 | `git-workdir`       | Directory inside the repository to clone  | Empty string, which represents the root directory
 | `git-branch`        | The Git branch to deploy                  | `${{ github.ref_name }}`
+| `git-sha`           | The Git SHA to deploy                     | Empty string, which represents the latest commit of the branch
 
 If you want your GitHub repository to use the default buildpack builder, set the parameter `git-builder` to `buildpack`. You can also add:
 

@@ -50,7 +50,7 @@ def argparse_to_ports(value):
         except ValueError:
             raise argparse.ArgumentTypeError(errmsg)
 
-        if protocol not in ('http', 'http2'):
+        if protocol not in ('http', 'http2', 'tcp'):
             raise argparse.ArgumentTypeError(
                 f'{errmsg} and "{protocol}" is not a valid protocol')
 

@@ -8,7 +8,7 @@ Before you can use the Koyeb Deploy Action, you first need to install and config
 
 ```yaml
 - name: Install and configure the Koyeb CLI
-  uses: koyeb-community/install-koyeb-cli@v2
+  uses: koyeb-community/koyeb-actions@v2
   with:
     api_token: "${{ secrets.KOYEB_API_TOKEN }}"
 ```
@@ -102,7 +102,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Install and configure the Koyeb CLI
-        uses: koyeb-community/install-koyeb-cli@v2
+        uses: koyeb-community/koyeb-actions@v2
         with:
           api_token: "${{ secrets.KOYEB_API_TOKEN }}"
 
@@ -145,7 +145,7 @@ After deploying a service to Koyeb, you may want to remove it when it is no long
 
 ```yaml
 - name: Install and configure the Koyeb CLI
-  uses: koyeb-community/install-koyeb-cli@v2
+  uses: koyeb-community/koyeb-actions@v2
   with:
     api_token: "${{ secrets.KOYEB_API_TOKEN }}"
 
@@ -172,7 +172,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install and configure the Koyeb CLI
-        uses: koyeb-community/install-koyeb-cli@v2
+        uses: koyeb-community/koyeb-actions@v2
         with:
           api_token: "${{ secrets.KOYEB_API_TOKEN }}"
 

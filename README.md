@@ -21,7 +21,7 @@ After the step that installs the Koyeb CLI, add the following step to your workf
 - name: Build and deploy the application to Koyeb
   uses: koyeb/action-git-deploy@v1
   with:
-    service-env: "PORT=8000"
+    service-env: PORT=8000
     service-ports: "8000:http"
     service-routes: "/:8000"
 ```

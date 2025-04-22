@@ -40,8 +40,8 @@ The following optional parameters can be added to the `with` block:
 | `build-timeout`           | Number of seconds to wait for the build before timing out and failing                                            | `900` (15 min)
 | `healthy-timeout`         | Number of seconds to wait for the service to become healthy before timing out and failing                        | `900` (15 min)
 | `service-env`             | A comma-separated list of KEY=value pairs to set environment variables for the service                           | No env
-| `service-instance-type`   | The type of instance to use to run the service                                                                   | `nano`
-| `service-regions`         | A comma-separated list of region identifiers to specify where the service should be deployed                     | `fra`
+| `service-instance-type`   | The type of instance to use to run the service - [Full list of instances](https://www.koyeb.com/docs/reference/instances)                                                                  | `nano`
+| `service-regions`         | A comma-separated list of region identifiers to specify where the service should be deployed [Full list of regions](https://www.koyeb.com/docs/reference/regions)               | `fra`
 | `service-ports`           | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service       | `80:http`
 | `service-routes`          | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                  | `/:80`
 | `service-checks`          | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service | No healthchecks

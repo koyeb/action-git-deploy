@@ -1,6 +1,6 @@
 # Koyeb Deploy GitHub Action
 
-This action builds and deploys an application from a GitHub repository to Koyeb.
+This action builds and deploys an application from a GitHub repository or Docker registry to Koyeb.
 
 ## Usage
 
@@ -78,10 +78,10 @@ If you want to deploy a Docker image and not a GitHub repository, you can set th
 
 | Name                             | Description                                    | Default Value | Example
 |----------------------------------|------------------------------------------------|---------------|--
-| `docker`                         | The docker image to deploy                     | Empty string  |
+| `docker`                         | The docker image to deploy                     | Empty string  | "user/repo-name:tag"
 | `docker-entrypoint`              | Docker ENTRYPOINT                              | Empty string  | `'nginx -g \"daemon off;\"'`
 | `docker-command`                 | Docker CMD                                     | Empty string  | `/docker-entrypoint.sh`
-| `docker-private-registry-secret` | Secret to authenticate to the private registry | Empty string  |
+| `docker-private-registry-secret` | Secret to authenticate to the private registry - Stringyfied name of the secret created in the [admin](https://app.koyeb.com/settings/registry-configuration) | Empty string  | "user-docker-credentials"
 
 
 ## Example: deploying a service to Koyeb

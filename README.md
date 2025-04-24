@@ -1,6 +1,6 @@
 # Koyeb Deploy GitHub Action
 
-This action builds and deploys an application from a GitHub repository to Koyeb.
+This action builds and deploys an application from a GitHub repository or Docker registry to Koyeb.
 
 ## Usage
 
@@ -21,7 +21,7 @@ After the step that installs the Koyeb CLI, add the following step to your workf
 - name: Build and deploy the application to Koyeb
   uses: koyeb/action-git-deploy@v1
   with:
-    service-env: "PORT=8000"
+    service-env: PORT=8000
     service-ports: "8000:http"
     service-routes: "/:8000"
 ```
@@ -40,8 +40,8 @@ The following optional parameters can be added to the `with` block:
 | `build-timeout`           | Number of seconds to wait for the build before timing out and failing                                            | `900` (15 min)
 | `healthy-timeout`         | Number of seconds to wait for the service to become healthy before timing out and failing                        | `900` (15 min)
 | `service-env`             | A comma-separated list of KEY=value pairs to set environment variables for the service                           | No env
-| `service-instance-type`   | The type of instance to use to run the service                                                                   | `nano`
-| `service-regions`         | A comma-separated list of region identifiers to specify where the service should be deployed                     | `fra`
+| `service-instance-type`   | The type of instance to use to run the service - [Full list of instances](https://www.koyeb.com/docs/reference/instances)                                                                  | `nano`
+| `service-regions`         | A comma-separated list of region identifiers to specify where the service should be deployed [Full list of regions](https://www.koyeb.com/docs/reference/regions)               | `fra`
 | `service-ports`           | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service       | `80:http`
 | `service-routes`          | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                  | `/:80`
 | `service-checks`          | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service | No healthchecks
@@ -78,10 +78,10 @@ If you want to deploy a Docker image and not a GitHub repository, you can set th
 
 | Name                             | Description                                    | Default Value | Example
 |----------------------------------|------------------------------------------------|---------------|--
-| `docker`                         | The docker image to deploy                     | Empty string  |
+| `docker`                         | The docker image to deploy                     | Empty string  | "user/repo-name:tag"
 | `docker-entrypoint`              | Docker ENTRYPOINT                              | Empty string  | `'nginx -g \"daemon off;\"'`
 | `docker-command`                 | Docker CMD                                     | Empty string  | `/docker-entrypoint.sh`
-| `docker-private-registry-secret` | Secret to authenticate to the private registry | Empty string  |
+| `docker-private-registry-secret` | Secret to authenticate to the private registry - Stringyfied name of the secret created in the [admin](https://app.koyeb.com/settings/registry-configuration) | Empty string  | "user-docker-credentials"
 
 
 ## Example: deploying a service to Koyeb

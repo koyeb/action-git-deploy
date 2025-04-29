@@ -47,6 +47,7 @@ The following optional parameters can be added to the `with` block:
 | `service-checks`          | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service | No healthchecks
 | `privileged`              | Whether to run the service in privileged mode                                                                    | `false`
 | `skip-cache`              | Whether skip the cache when building the service                                                                 | `false`
+| `deployment-strategy`     | Deployment strategy, either "rolling" (default), "blue-green" or "immediate"                                     | `rolling`
 
 If you want to deploy a GitHub repository, you can also add the following parameters:
 

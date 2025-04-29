@@ -132,7 +132,7 @@ def service_common_args(
     git_build_command, git_run_command,
     git_builder,
     git_docker_command, git_docker_dockerfile, git_docker_entrypoint, git_docker_target,
-    privileged, skip_cache,
+    privileged, skip_cache, deployment_strategy,
     **kwargs
 ):
     """Arguments common to service create and service update."""
@@ -206,6 +206,7 @@ def service_common_args(
         ]
     params += [f'--privileged={"true" if privileged else "false"}']
     params += [f'--skip-cache={"true" if skip_cache else "false"}']
+    params += [f'--deployment-strategy={deployment_strategy}']
     return params
 
 
@@ -367,6 +368,9 @@ def main():
     parser.add_argument('--service-checks', required=True,
                         help='Comma separated list of <port>:http:<path> or <port>:tcp to specify the service healthchecks',
                         type=argparse_to_healthchecks)
+    parser.add_argument('--deployment-strategy', required=False,
+                        choices=('rolling', 'blue-green', 'immediate'), default='rolling',
+                        help='Deployment strategy, either "rolling" (default), "blue-green" or "immediate"')
     args = parser.parse_args()
 
     check_mutual_exclusive_options(parser, args)

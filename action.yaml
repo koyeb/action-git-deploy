@@ -150,6 +150,11 @@ inputs:
     required: false
     default: "false"
 
+  deployment-strategy:
+    description: "Deployment strategy, either `rolling` (default), `blue-green` or `immediate`."
+    required: false
+    default: "rolling"
+
 runs:
   using: "composite"
   steps:
@@ -199,7 +204,8 @@ runs:
               --service-routes "${{ inputs.service-routes }}" \
               --service-checks "${{ inputs.service-checks }}" \
               --privileged "${{ inputs.privileged }}" \
-              --skip-cache "${{ inputs.skip-cache }}"
+              --skip-cache "${{ inputs.skip-cache }}" \
+              --deployment-strategy "${{ inputs.deployment-strategy }}"
         else
           if [ "${{ inputs.git-builder }}" = "buildpack" ];
           then
@@ -221,7 +227,8 @@ runs:
               --service-routes "${{ inputs.service-routes }}" \
               --service-checks "${{ inputs.service-checks }}" \
               --privileged "${{ inputs.privileged }}" \
-              --skip-cache "${{ inputs.skip-cache }}"
+              --skip-cache "${{ inputs.skip-cache }}" \
+              --deployment-strategy "${{ inputs.deployment-strategy }}"
           else
             ${{ github.action_path }}/scripts/service-upsert.py \
               --app-name "${{ env.APP_SLUG }}" \
@@ -243,7 +250,8 @@ runs:
               --service-routes "${{ inputs.service-routes }}" \
               --service-checks "${{ inputs.service-checks }}" \
               --privileged "${{ inputs.privileged }}" \
-              --skip-cache "${{ inputs.skip-cache }}"
+              --skip-cache "${{ inputs.skip-cache }}" \
+              --deployment-strategy "${{ inputs.deployment-strategy }}"
           fi
         fi
 

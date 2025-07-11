@@ -126,6 +126,11 @@ inputs:
     required: false
     default: ""
 
+  service-files:
+    description: "List of file to add to the service"
+    required: false
+    default: ""
+
   service-ports:
     description: "Comma separated list of <KEY>=<value> to specify the ports to expose"
     required: false
@@ -173,6 +178,10 @@ runs:
       run: |
         # sed: to replace non alphanum chars with -
         echo "SERVICE_SLUG=$(echo ${{ inputs.service-name }} | sed 's/[^a-z0-9]/-/g')" | tee $GITHUB_ENV
+
+    - name: Install deps
+      shell: sh
+      run: pip install pyyaml
 
     - name: Create Koyeb application
       shell: sh
@@ -246,6 +255,8 @@ runs:
               --skip-cache "${{ inputs.skip-cache }}"
           fi
         fi
+      env:
+        SERVICE_FILES: "${{ inputs.service-files }}"
 
     - id: get-deployment
       name: Get last deployment of the Koyeb service

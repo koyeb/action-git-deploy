@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import os
+import yaml
+import tempfile
 import argparse
 import shlex
 import subprocess
@@ -208,6 +211,30 @@ def service_common_args(
     params += [f'--skip-cache={"true" if skip_cache else "false"}']
     return params
 
+def add_service_files(params):
+    raw = os.getenv("SERVICE_FILES", "").strip()
+    if not raw:
+        return
+    try:
+        files = yaml.safe_load(raw)
+    except yaml.YAMLError as e:
+        raise argparse.ArgumentTypeError(f"bad service-files YAML: {e}")
+
+    for f in files:
+        if not isinstance(f, dict) or 'path' not in f or 'content' not in f:
+            raise argparse.ArgumentTypeError(
+                'Each file in SERVICE_FILES should be a dict with "path" and "content" keys.'
+            )
+        path = f['path']
+        content = f['content']
+        if not isinstance(path, str) or not isinstance(content, str):
+            raise argparse.ArgumentTypeError(
+                'Both "path" and "content" in each file in SERVICE_FILES should be strings.'
+            )
+        with tempfile.NamedTemporaryFile(delete=False, mode='w', encoding='utf-8') as temp_file:
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+            params += ['--config-file', f'{temp_file_path}:{path}']
 
 def koyeb_service_exists(app_name, service_name):
     """Wrapper around the koyeb CLI which returns True if a service exists."""
@@ -372,6 +399,7 @@ def main():
     check_mutual_exclusive_options(parser, args)
 
     params = service_common_args(**vars(args))
+    add_service_files(params)
 
     if not koyeb_service_exists(args.app_name, args.service_name):
         koyeb_service_create(args.app_name, args.service_name, params)

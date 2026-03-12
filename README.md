@@ -28,6 +28,12 @@ After the step that installs the Koyeb CLI, add the following step to your workf
 
 The `service-env`, `service-ports`, and `service-routes` parameters are optional, but should match the needs of your application.  The defaults provided are unlikely to work for most applications.
 
+Specify exactly one deployment source:
+- Git source: use `git-url` (default behavior)
+- Docker source: use `docker`
+
+`docker` and `git-*` options are mutually exclusive.
+
 ## Optional Parameters
 
 The following optional parameters can be added to the `with` block:
@@ -36,7 +42,7 @@ The following optional parameters can be added to the `with` block:
 |---------------------------|------------------------------------------------------------------------------------------------------------------|--
 | `app-name`                | The name of the application                                                                                      | `<repo>-<branch>`
 | `service-name`            | Name of the Koyeb service to be created                                                                          | `${{github.ref_name}}`
-| `service-type`            | Type of service to create ("web" or "worker")                                                                    | `web`
+| `service-type`            | Type of service to create ("web", "worker", or "sandbox")                                                       | `web`
 | `build-timeout`           | Number of seconds to wait for the build before timing out and failing                                            | `900` (15 min)
 | `healthy-timeout`         | Number of seconds to wait for the service to become healthy before timing out and failing                        | `900` (15 min)
 | `service-env`             | A comma-separated list of KEY=value pairs to set environment variables for the service                           | No env
@@ -45,6 +51,22 @@ The following optional parameters can be added to the `with` block:
 | `service-ports`           | A comma-separated list of port:protocol pairs to specify the ports and protocols to expose for the service       | `80:http`
 | `service-routes`          | A comma-separated list of `<path>:<port>` pairs to specify the routes to expose for the service                  | `/:80`
 | `service-checks`          | A comma-separated list of `<port>:http:<path>` or `<port>:tcp` pairs to specify the healthchecks for the service | No healthchecks
+| `service-checks-grace-period` | A comma-separated list of `<healthcheck>=<seconds>` values to configure healthcheck grace periods             | Empty string
+| `service-proxy-ports`     | A comma-separated list of `<port>[:tcp]` values to configure proxy ports                                            | Empty string
+| `service-volumes`         | A comma-separated list of `<volume>:<path>` values to attach volumes                                                 | Empty string
+| `service-scale`           | Set both min and max scale values                                                                                    | Empty string
+| `service-min-scale`       | Set minimum number of instances                                                                                      | Empty string
+| `service-max-scale`       | Set maximum number of instances                                                                                      | Empty string
+| `service-autoscaling-average-cpu` | Target CPU usage percentage for autoscaling                                                                | Empty string
+| `service-autoscaling-average-mem` | Target memory usage percentage for autoscaling                                                             | Empty string
+| `service-autoscaling-concurrent-requests` | Target concurrent requests for autoscaling                                                     | Empty string
+| `service-autoscaling-requests-per-second` | Target requests per second for autoscaling                                                     | Empty string
+| `service-autoscaling-requests-response-time` | Target p95 response time in milliseconds for autoscaling                                     | Empty string
+| `service-deployment-strategy` | Deployment strategy (`rolling`, `blue-green`, `immediate`)                                                     | Empty string
+| `service-light-sleep-delay` | Delay before entering light sleep (for example `1m`, `5m`, `1h`, `0`)                                             | Empty string
+| `service-deep-sleep-delay` | Delay before entering deep sleep (for example `5m`, `30m`, `1h`, `0`)                                              | Empty string
+| `service-delete-after-delay` | Automatically delete service after this duration (for example `1h`, `24h`, `0`)                                 | Empty string
+| `service-delete-after-inactivity-delay` | Automatically delete service after inactivity for this duration (for example `1h`, `24h`, `0`) | Empty string
 | `privileged`              | Whether to run the service in privileged mode                                                                    | `false`
 | `skip-cache`              | Whether skip the cache when building the service                                                                 | `false`
 
@@ -56,8 +78,9 @@ If you want to deploy a GitHub repository, you can also add the following parame
 | `git-workdir`       | Directory inside the repository to clone  | Empty string, which represents the root directory
 | `git-branch`        | The Git branch to deploy                  | `${{ github.ref_name }}`
 | `git-sha`           | The Git SHA to deploy                     | Empty string, which represents the latest commit of the branch
+| `git-builder`       | Builder to use (`buildpack` or `docker`) | `buildpack`
 
-If you want your GitHub repository to use the default buildpack builder, set the parameter `git-builder` to `buildpack`. You can also add:
+By default, `git-builder` is `buildpack`. You can also add:
 
 | Name                | Description                      | Default Value
 |---------------------|----------------------------------|--

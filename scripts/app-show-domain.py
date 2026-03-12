@@ -9,7 +9,7 @@ def koyeb_app_get(app_name):
     """Wrapper around koyeb CLI to get application. Assumes that the koyeb CLI
     is installed and configured."""
     proc = subprocess.run(
-        ['koyeb', 'app', 'get', app_name, '-o', 'json'],
+        ['koyeb', 'apps', 'get', app_name, '-o', 'json'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )

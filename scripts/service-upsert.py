@@ -22,6 +22,17 @@ def argparse_to_regions(value):
     return regions
 
 
+def argparse_to_csv_list(value):
+    values = []
+
+    for part in value.split(','):
+        if not part:
+            continue
+
+        values.append(part)
+    return values
+
+
 def argparse_to_env(value):
     env = []
 
@@ -124,9 +135,39 @@ def argparse_to_bool(value):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
+def argparse_to_optional_int(value):
+    if value in (None, ''):
+        return None
+
+    try:
+        return int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError('Integer value expected.')
+
+
+def argparse_to_deployment_strategy(value):
+    if value in (None, ''):
+        return None
+
+    valid = ('rolling', 'blue-green', 'immediate')
+    if value not in valid:
+        raise argparse.ArgumentTypeError(
+            f'Deployment strategy must be one of {", ".join(valid)}.'
+        )
+    return value
+
+
 def service_common_args(
     *,
     service_instance_type, service_regions, service_env, service_ports, service_routes, service_checks, service_type,
+    service_checks_grace_period, service_proxy_ports, service_volumes,
+    service_scale, service_min_scale, service_max_scale,
+    service_autoscaling_average_cpu, service_autoscaling_average_mem,
+    service_autoscaling_concurrent_requests, service_autoscaling_requests_per_second,
+    service_autoscaling_requests_response_time,
+    service_deployment_strategy,
+    service_light_sleep_delay, service_deep_sleep_delay,
+    service_delete_after_delay, service_delete_after_inactivity_delay,
     docker, docker_entrypoint, docker_command, docker_private_registry_secret,
     git_url, git_workdir, git_branch, git_sha,
     git_build_command, git_run_command,
@@ -159,19 +200,20 @@ def service_common_args(
         ]
 
     else:
-        params += [
-            '--git', git_url,
-            '--git-workdir', git_workdir,
-            '--git-branch', git_branch,
-            '--git-sha', git_sha,
-            '--git-no-deploy-on-push',
-        ]
+        params += ['--git', git_url]
+        if git_workdir is not None:
+            params += ['--git-workdir', git_workdir]
+        if git_branch:
+            params += ['--git-branch', git_branch]
+        if git_sha:
+            params += ['--git-sha', git_sha]
+        params += ['--git-no-deploy-on-push']
         if git_builder == 'buildpack':
-            params += [
-                '--git-builder', 'buildpack',
-                '--git-build-command', git_build_command,
-                '--git-run-command', git_run_command,
-            ]
+            params += ['--git-builder', 'buildpack']
+            if git_build_command is not None:
+                params += ['--git-buildpack-build-command', git_build_command]
+            if git_run_command is not None:
+                params += ['--git-buildpack-run-command', git_run_command]
         else:
             params += ['--git-builder', 'docker']
             if not git_docker_command:  # erase existing command and args
@@ -181,8 +223,10 @@ def service_common_args(
                 params += ['--git-docker-command', git_docker_command[0]]
                 for part in git_docker_command[1:]:
                     params += ['--git-docker-args', part]
-            params += ['--git-docker-dockerfile', git_docker_dockerfile]
-            params += ['--git-docker-target', git_docker_target]
+            if git_docker_dockerfile is not None:
+                params += ['--git-docker-dockerfile', git_docker_dockerfile]
+            if git_docker_target is not None:
+                params += ['--git-docker-target', git_docker_target]
             if not git_docker_entrypoint:
                 params += ['--git-docker-entrypoint', '']
             else:
@@ -204,6 +248,42 @@ def service_common_args(
             '--checks',
             f'{check["port"]}:{check["protocol"]}:{check["path"]}' if check["protocol"] == 'http' else f'{check["port"]}:{check["protocol"]}'
         ]
+    for grace_period in service_checks_grace_period:
+        params += ['--checks-grace-period', grace_period]
+    for proxy_port in service_proxy_ports:
+        params += ['--proxy-ports', proxy_port]
+    for volume in service_volumes:
+        params += ['--volumes', volume]
+
+    if service_scale is not None:
+        params += ['--scale', str(service_scale)]
+    if service_min_scale is not None:
+        params += ['--min-scale', str(service_min_scale)]
+    if service_max_scale is not None:
+        params += ['--max-scale', str(service_max_scale)]
+
+    if service_autoscaling_average_cpu is not None:
+        params += ['--autoscaling-average-cpu', str(service_autoscaling_average_cpu)]
+    if service_autoscaling_average_mem is not None:
+        params += ['--autoscaling-average-mem', str(service_autoscaling_average_mem)]
+    if service_autoscaling_concurrent_requests is not None:
+        params += ['--autoscaling-concurrent-requests', str(service_autoscaling_concurrent_requests)]
+    if service_autoscaling_requests_per_second is not None:
+        params += ['--autoscaling-requests-per-second', str(service_autoscaling_requests_per_second)]
+    if service_autoscaling_requests_response_time is not None:
+        params += ['--autoscaling-requests-response-time', str(service_autoscaling_requests_response_time)]
+
+    if service_deployment_strategy:
+        params += ['--deployment-strategy', service_deployment_strategy]
+    if service_light_sleep_delay:
+        params += ['--light-sleep-delay', service_light_sleep_delay]
+    if service_deep_sleep_delay:
+        params += ['--deep-sleep-delay', service_deep_sleep_delay]
+    if service_delete_after_delay:
+        params += ['--delete-after-delay', service_delete_after_delay]
+    if service_delete_after_inactivity_delay:
+        params += ['--delete-after-inactivity-delay', service_delete_after_inactivity_delay]
+
     params += [f'--privileged={"true" if privileged else "false"}']
     params += [f'--skip-cache={"true" if skip_cache else "false"}']
     return params
@@ -212,7 +292,7 @@ def service_common_args(
 def koyeb_service_exists(app_name, service_name):
     """Wrapper around the koyeb CLI which returns True if a service exists."""
     args = [
-        'koyeb', 'service', 'get',
+        'koyeb', 'services', 'get',
         service_name,
         '--app', app_name,
         '-o', 'json',
@@ -227,7 +307,7 @@ def koyeb_service_create(app_name, service_name, params):
     exists, it raises an error. Assumes that the koyeb CLI is installed and
     configured."""
     args = [
-        'koyeb', 'service', 'create',
+        'koyeb', 'services', 'create',
         service_name,
         '--app', app_name,
         '-o', 'json',
@@ -248,7 +328,7 @@ def koyeb_service_update(app_name, service_name, params):
     """Wrapper around koyeb CLI to update the definition of an existing service.
     Assumes that the koyeb CLI is installed and configured."""
     args = [
-        'koyeb', 'service', 'update',
+        'koyeb', 'services', 'update',
         f'{app_name}/{service_name}',
         '-o', 'json'
     ] + params
@@ -264,25 +344,48 @@ def koyeb_service_update(app_name, service_name, params):
 
 
 def check_mutual_exclusive_options(parser, args):
-    # If --docker-* options are set, --git-* options must not be set
-    if (
-        any([True for key, value in vars(args).items()
-            if key.startswith('docker') and value])
-        and
-        any([True for key, value in vars(args).items()
-            if key.startswith('git') and value])
-    ):
+    has_docker_source = bool(args.docker)
+    has_git_source = bool(args.git_url)
+
+    if has_docker_source == has_git_source:
+        parser.error(
+            'Set exactly one deployment source: --docker or --git-url.'
+        )
+
+    if has_docker_source and any([
+        args.git_workdir,
+        args.git_branch,
+        args.git_sha,
+        args.git_builder,
+        args.git_build_command,
+        args.git_run_command,
+        args.git_docker_command,
+        args.git_docker_dockerfile,
+        args.git_docker_entrypoint,
+        args.git_docker_target,
+    ]):
         parser.error(
             'Docker and GIT options are mutually exclusive. Set either --docker-* or --git-* options, not both.')
 
-    if args.git_builder == 'docker' and (
+    if has_git_source and any([
+        args.docker_entrypoint,
+        args.docker_command,
+        args.docker_private_registry_secret,
+    ]):
+        parser.error(
+            'Docker and GIT options are mutually exclusive. Set either --docker-* or --git-* options, not both.'
+        )
+
+    git_builder = args.git_builder or 'buildpack'
+
+    if git_builder == 'docker' and (
         args.git_build_command or
         args.git_run_command
     ):
         parser.error(
             '--git-build-command and --git-run-command are only valid with the buildpack builder.'
         )
-    elif args.git_builder == 'buildpack' and (
+    elif git_builder == 'buildpack' and (
         any([True for key, value in vars(args).items()
             if key.startswith('git_docker') and value])
     ):
@@ -304,7 +407,7 @@ def main():
     parser.add_argument("--skip-cache", type=argparse_to_bool, nargs='?',
                         const=True, default=False,
                         help="Whether to skip the cache when building the application")
-    parser.add_argument("--service-type", choices=('web', 'worker'), required=True, help="Service type")
+    parser.add_argument("--service-type", choices=('web', 'worker', 'sandbox'), required=True, help="Service type")
 
     # Docker deployment
     parser.add_argument('--docker', required=False,
@@ -328,7 +431,7 @@ def main():
                         help='GIT branch to deploy')
     parser.add_argument('--git-sha', required=False,
                         help='GIT SHA to deploy')
-    parser.add_argument('--git-builder', required=False, choices=('buildpack', 'docker'),
+    parser.add_argument('--git-builder', required=False, default='buildpack', choices=('buildpack', 'docker'),
                         help='Type of builder to use')
 
     # Git deployment: buildpack builder options
@@ -367,6 +470,42 @@ def main():
     parser.add_argument('--service-checks', required=True,
                         help='Comma separated list of <port>:http:<path> or <port>:tcp to specify the service healthchecks',
                         type=argparse_to_healthchecks)
+    parser.add_argument('--service-checks-grace-period', required=False, default='',
+                        help='Comma separated list of <healthcheck>=<seconds> to specify grace period values for service checks',
+                        type=argparse_to_csv_list)
+    parser.add_argument('--service-proxy-ports', required=False, default='',
+                        help='Comma separated list of <port>[:tcp] to specify proxy ports',
+                        type=argparse_to_csv_list)
+    parser.add_argument('--service-volumes', required=False, default='',
+                        help='Comma separated list of <volume>:<path> to attach service volumes',
+                        type=argparse_to_csv_list)
+    parser.add_argument('--service-scale', required=False, type=argparse_to_optional_int,
+                        help='Set both min and max scale values')
+    parser.add_argument('--service-min-scale', required=False, type=argparse_to_optional_int,
+                        help='Set minimum number of instances')
+    parser.add_argument('--service-max-scale', required=False, type=argparse_to_optional_int,
+                        help='Set maximum number of instances')
+    parser.add_argument('--service-autoscaling-average-cpu', required=False, type=argparse_to_optional_int,
+                        help='Target CPU usage percentage for autoscaling')
+    parser.add_argument('--service-autoscaling-average-mem', required=False, type=argparse_to_optional_int,
+                        help='Target memory usage percentage for autoscaling')
+    parser.add_argument('--service-autoscaling-concurrent-requests', required=False, type=argparse_to_optional_int,
+                        help='Target concurrent requests for autoscaling')
+    parser.add_argument('--service-autoscaling-requests-per-second', required=False, type=argparse_to_optional_int,
+                        help='Target requests per second for autoscaling')
+    parser.add_argument('--service-autoscaling-requests-response-time', required=False, type=argparse_to_optional_int,
+                        help='Target p95 response time in milliseconds for autoscaling')
+    parser.add_argument('--service-deployment-strategy', required=False,
+                        type=argparse_to_deployment_strategy,
+                        help='Deployment strategy to use')
+    parser.add_argument('--service-light-sleep-delay', required=False,
+                        help='Delay before entering light sleep (e.g. 1m, 5m, 1h, 0)')
+    parser.add_argument('--service-deep-sleep-delay', required=False,
+                        help='Delay before entering deep sleep (e.g. 5m, 30m, 1h, 0)')
+    parser.add_argument('--service-delete-after-delay', required=False,
+                        help='Automatically delete service after this duration (e.g. 1h, 24h, 0)')
+    parser.add_argument('--service-delete-after-inactivity-delay', required=False,
+                        help='Automatically delete service after inactivity for this duration (e.g. 1h, 24h, 0)')
     args = parser.parse_args()
 
     check_mutual_exclusive_options(parser, args)

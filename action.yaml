@@ -74,7 +74,7 @@ inputs:
     default: ""
 
   git-builder:
-    description: "Type builder to user (buildpack or docker)"
+    description: "Type builder to use (buildpack or docker)"
     required: false
     default: "buildpack"
 
@@ -140,8 +140,88 @@ inputs:
     description: "Comma separated list of <port>:<protocol>:<path> to specify the service healthchecks"
     required: false
 
+  service-checks-grace-period:
+    description: "Comma separated list of <healthcheck>=<seconds> to specify grace period values for healthchecks"
+    required: false
+    default: ""
+
+  service-proxy-ports:
+    description: "Comma separated list of <port>[:tcp] to specify proxy ports"
+    required: false
+    default: ""
+
+  service-volumes:
+    description: "Comma separated list of <volume>:<path> to attach service volumes"
+    required: false
+    default: ""
+
+  service-scale:
+    description: "Set both min-scale and max-scale values"
+    required: false
+    default: ""
+
+  service-min-scale:
+    description: "Set minimum number of instances"
+    required: false
+    default: ""
+
+  service-max-scale:
+    description: "Set maximum number of instances"
+    required: false
+    default: ""
+
+  service-autoscaling-average-cpu:
+    description: "Target CPU usage percentage for autoscaling"
+    required: false
+    default: ""
+
+  service-autoscaling-average-mem:
+    description: "Target memory usage percentage for autoscaling"
+    required: false
+    default: ""
+
+  service-autoscaling-concurrent-requests:
+    description: "Target concurrent requests for autoscaling"
+    required: false
+    default: ""
+
+  service-autoscaling-requests-per-second:
+    description: "Target requests per second for autoscaling"
+    required: false
+    default: ""
+
+  service-autoscaling-requests-response-time:
+    description: "Target p95 response time in milliseconds for autoscaling"
+    required: false
+    default: ""
+
+  service-deployment-strategy:
+    description: "Deployment strategy (rolling, blue-green, immediate)"
+    required: false
+    default: ""
+
+  service-light-sleep-delay:
+    description: "Delay before entering light sleep (for example 1m, 5m, 1h, 0)"
+    required: false
+    default: ""
+
+  service-deep-sleep-delay:
+    description: "Delay before entering deep sleep (for example 5m, 30m, 1h, 0)"
+    required: false
+    default: ""
+
+  service-delete-after-delay:
+    description: "Automatically delete service after this duration (for example 1h, 24h, 0)"
+    required: false
+    default: ""
+
+  service-delete-after-inactivity-delay:
+    description: "Automatically delete service after inactivity for this duration (for example 1h, 24h, 0)"
+    required: false
+    default: ""
+
   service-type:
-    description: "Service type (\"web\" or \"worker\")"
+    description: "Service type (\"web\", \"worker\", or \"sandbox\")"
     required: false
     default: "web"
 
@@ -198,53 +278,64 @@ runs:
               --service-ports "${{ inputs.service-ports }}" \
               --service-routes "${{ inputs.service-routes }}" \
               --service-checks "${{ inputs.service-checks }}" \
+              --service-checks-grace-period "${{ inputs.service-checks-grace-period }}" \
+              --service-proxy-ports "${{ inputs.service-proxy-ports }}" \
+              --service-volumes "${{ inputs.service-volumes }}" \
+              --service-scale "${{ inputs.service-scale }}" \
+              --service-min-scale "${{ inputs.service-min-scale }}" \
+              --service-max-scale "${{ inputs.service-max-scale }}" \
+              --service-autoscaling-average-cpu "${{ inputs.service-autoscaling-average-cpu }}" \
+              --service-autoscaling-average-mem "${{ inputs.service-autoscaling-average-mem }}" \
+              --service-autoscaling-concurrent-requests "${{ inputs.service-autoscaling-concurrent-requests }}" \
+              --service-autoscaling-requests-per-second "${{ inputs.service-autoscaling-requests-per-second }}" \
+              --service-autoscaling-requests-response-time "${{ inputs.service-autoscaling-requests-response-time }}" \
+              --service-deployment-strategy "${{ inputs.service-deployment-strategy }}" \
+              --service-light-sleep-delay "${{ inputs.service-light-sleep-delay }}" \
+              --service-deep-sleep-delay "${{ inputs.service-deep-sleep-delay }}" \
+              --service-delete-after-delay "${{ inputs.service-delete-after-delay }}" \
+              --service-delete-after-inactivity-delay "${{ inputs.service-delete-after-inactivity-delay }}" \
               --privileged "${{ inputs.privileged }}" \
               --skip-cache "${{ inputs.skip-cache }}"
         else
-          if [ "${{ inputs.git-builder }}" = "buildpack" ];
-          then
-            ${{ github.action_path }}/scripts/service-upsert.py \
-              --app-name "${{ env.APP_SLUG }}" \
-              --service-type "${{ inputs.service-type }}" \
-              --service-name "${{ env.SERVICE_SLUG }}" \
-              --git-url "${{ inputs.git-url }}" \
-              --git-workdir "${{ inputs.git-workdir }}" \
-              --git-branch "${{ inputs.git-branch }}" \
-              --git-sha "${{ inputs.git-sha }}" \
-              --git-builder "buildpack" \
-              --git-build-command "${{ inputs.git-build-command }}" \
-              --git-run-command "${{ inputs.git-run-command }}" \
-              --service-instance-type "${{ inputs.service-instance-type }}" \
-              --service-regions "${{ inputs.service-regions }}" \
-              --service-env "${{ inputs.service-env }}" \
-              --service-ports "${{ inputs.service-ports }}" \
-              --service-routes "${{ inputs.service-routes }}" \
-              --service-checks "${{ inputs.service-checks }}" \
-              --privileged "${{ inputs.privileged }}" \
-              --skip-cache "${{ inputs.skip-cache }}"
-          else
-            ${{ github.action_path }}/scripts/service-upsert.py \
-              --app-name "${{ env.APP_SLUG }}" \
-              --service-type "${{ inputs.service-type }}" \
-              --service-name "${{ env.SERVICE_SLUG }}" \
-              --git-url "${{ inputs.git-url }}" \
-              --git-workdir "${{ inputs.git-workdir }}" \
-              --git-branch "${{ inputs.git-branch }}" \
-              --git-sha "${{ inputs.git-sha }}" \
-              --git-builder "docker" \
-              --git-docker-command "${{ inputs.git-docker-command }}" \
-              --git-docker-dockerfile "${{ inputs.git-docker-dockerfile }}" \
-              --git-docker-entrypoint "${{ inputs.git-docker-entrypoint }}" \
-              --git-docker-target "${{ inputs.git-docker-target }}" \
-              --service-instance-type "${{ inputs.service-instance-type }}" \
-              --service-regions "${{ inputs.service-regions }}" \
-              --service-env "${{ inputs.service-env }}" \
-              --service-ports "${{ inputs.service-ports }}" \
-              --service-routes "${{ inputs.service-routes }}" \
-              --service-checks "${{ inputs.service-checks }}" \
-              --privileged "${{ inputs.privileged }}" \
-              --skip-cache "${{ inputs.skip-cache }}"
-          fi
+          ${{ github.action_path }}/scripts/service-upsert.py \
+            --app-name "${{ env.APP_SLUG }}" \
+            --service-type "${{ inputs.service-type }}" \
+            --service-name "${{ env.SERVICE_SLUG }}" \
+            --git-url "${{ inputs.git-url }}" \
+            --git-workdir "${{ inputs.git-workdir }}" \
+            --git-branch "${{ inputs.git-branch }}" \
+            --git-sha "${{ inputs.git-sha }}" \
+            --git-builder "${{ inputs.git-builder }}" \
+            --git-build-command "${{ inputs.git-build-command }}" \
+            --git-run-command "${{ inputs.git-run-command }}" \
+            --git-docker-command "${{ inputs.git-docker-command }}" \
+            --git-docker-dockerfile "${{ inputs.git-docker-dockerfile }}" \
+            --git-docker-entrypoint "${{ inputs.git-docker-entrypoint }}" \
+            --git-docker-target "${{ inputs.git-docker-target }}" \
+            --service-instance-type "${{ inputs.service-instance-type }}" \
+            --service-regions "${{ inputs.service-regions }}" \
+            --service-env "${{ inputs.service-env }}" \
+            --service-ports "${{ inputs.service-ports }}" \
+            --service-routes "${{ inputs.service-routes }}" \
+            --service-checks "${{ inputs.service-checks }}" \
+            --service-checks-grace-period "${{ inputs.service-checks-grace-period }}" \
+            --service-proxy-ports "${{ inputs.service-proxy-ports }}" \
+            --service-volumes "${{ inputs.service-volumes }}" \
+            --service-scale "${{ inputs.service-scale }}" \
+            --service-min-scale "${{ inputs.service-min-scale }}" \
+            --service-max-scale "${{ inputs.service-max-scale }}" \
+            --service-autoscaling-average-cpu "${{ inputs.service-autoscaling-average-cpu }}" \
+            --service-autoscaling-average-mem "${{ inputs.service-autoscaling-average-mem }}" \
+            --service-autoscaling-concurrent-requests "${{ inputs.service-autoscaling-concurrent-requests }}" \
+            --service-autoscaling-requests-per-second "${{ inputs.service-autoscaling-requests-per-second }}" \
+            --service-autoscaling-requests-response-time "${{ inputs.service-autoscaling-requests-response-time }}" \
+            --service-deployment-strategy "${{ inputs.service-deployment-strategy }}" \
+            --service-light-sleep-delay "${{ inputs.service-light-sleep-delay }}" \
+            --service-deep-sleep-delay "${{ inputs.service-deep-sleep-delay }}" \
+            --service-delete-after-delay "${{ inputs.service-delete-after-delay }}" \
+            --service-delete-after-inactivity-delay "${{ inputs.service-delete-after-inactivity-delay }}" \
+            --privileged "${{ inputs.privileged }}" \
+            --skip-cache "${{ inputs.skip-cache }}"
         fi
 
     - id: get-deployment

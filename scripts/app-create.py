@@ -9,7 +9,7 @@ def koyeb_app_create(app_name):
     """Wrapper around koyeb CLI to create an app. If the app already exists, it
     does nothing. Assumes that the koyeb CLI is installed and configured."""
     proc = subprocess.run(
-        ['koyeb', 'app', 'create', app_name, '-o', 'json', '-d'],
+        ['koyeb', 'apps', 'create', app_name, '-o', 'json', '-d'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
